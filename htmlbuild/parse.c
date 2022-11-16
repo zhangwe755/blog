@@ -35,6 +35,7 @@ cmdentity * parseCmdStr(char *cmdStr) {
 
     // TODO 解析文件路径
 
+
     if (strncmp("html", cmdStr + 2, (size_t)4) == 0) {
         printf("%s is html!\n", cmdStr);
         entity->file_type = FILE_TYPE_HTML;
