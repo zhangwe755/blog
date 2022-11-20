@@ -1,3 +1,6 @@
+#ifndef HT_LIST
+#define HT_LIST
+
 
 typedef struct ht_node {
     struct ht_node *preNode;
@@ -11,6 +14,8 @@ typedef struct ht_list {
     int len;
     void *data;
 } htlist;
+
+#endif
 
 htlist * htCreateList();
 void htAddNode(htlist *baseList, htnode *node);

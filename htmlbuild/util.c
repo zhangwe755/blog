@@ -5,8 +5,11 @@
 #include <stdlib.h>
 #include <libgen.h>
 #include <sys/stat.h>
+#include <dirent.h>
+
 
 #include "util.h"
+#include "list.h"
 
 // start end 下标都会被替换
 char * replacePart(char *src, int start, int end, char *part) {
@@ -27,9 +30,11 @@ char * replacePartUseIndex(char *src, charindex point, char *part) {
 }
 
 char * htSubstr(char *src, int n) {
-    char *dest = malloc(n);
+    printf("src :%s, n:%d\n", src, n);
+    char *dest = malloc(n+1);
     strncpy(dest, src, n);
     dest[n] = '\0';
+    printf("dest:%s\n", dest);
     return dest;
 }
 
@@ -39,7 +44,11 @@ char* getAbsolutePath(char *path) {
     char *abPath;
     size_t pathStart = 0;
     if (path[0] == '/') {
-        return path;
+        abPath = malloc(strlen(path));
+        strcpy(abPath, path);
+        abPath[strlen(path)] = '\0';
+        printf("==>abPath : %s abPathSize:%lu, strlen:%lu\n", abPath, sizeof(abPath), strlen(abPath));
+        return abPath;
     }
     if (strlen(path)>2 && path[0] == '.' && path[1] == '/') {
         pathStart = 2;
@@ -117,6 +126,42 @@ FILE *deleteAndCreateFile(char *filePath) {
     createDir(filePath);
     FILE *fp = fopen(src, "w");
     return fp;
+}
+
+htlist * htfilerecursive(htlist *filelist, char *basePath) {
+	// 路径
+    char path[10240];
+    struct dirent *dp;
+    char *tmpPath;
+    DIR *dir = opendir(basePath);
+    int len;
+
+   	// 如果是文件则直接结束此次调用
+    if (!dir) {
+        len = strlen(basePath);
+        tmpPath = malloc(len+1);
+        strcpy(tmpPath, basePath);
+        tmpPath[len] = '\0';
+        htAddNodeUseData(filelist, tmpPath);
+        return filelist;
+    }
+
+    while ((dp = readdir(dir)) != NULL)
+    {
+    	// 跳过 "." 和 ”..“
+        if (strcmp(dp->d_name, ".") == 0 || strcmp(dp->d_name, "..") == 0) {
+            continue;
+        	
+        }
+        // 将文件名和路径进行拼接形成一个完整路径
+        strcpy(path, basePath);
+        strcat(path, "/");
+        strcat(path, dp->d_name);
+		// 递归遍历
+        htfilerecursive(filelist, path);
+    }
+    closedir(dir);
+    return filelist;
 }
 
 

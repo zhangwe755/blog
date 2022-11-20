@@ -5,11 +5,53 @@
 #include "parse.h"
 
 
+#define FILE_TYPE_NONE 0
 #define FILE_TYPE_HTML 1
 #define FILE_TYPE_MARK 2
 
 #define PATH_NORMAL 1
 #define PATH_FUZZY_NAME 2
+
+/**
+ * 从命令中解析出包含的文件列表
+ */
+void parseCmdFiles(htlist *fileList, char *cmd_src) {
+    int cmdLen = strlen(cmd_src);
+
+    htlist *srcItemList = htCreateList();
+    // 解析|分割字符
+    int start = 6, nextstart = 6;
+    for (int i=start; i<cmdLen-1; i++) {
+        if (cmd_src[i] != '|') {
+            continue;
+        }
+        htAddNodeUseData(srcItemList, htSubstr(cmd_src+nextstart, i-nextstart));
+        nextstart = i + 1;
+    }
+    if (nextstart < cmdLen-1) {
+        htAddNodeUseData(srcItemList, htSubstr(cmd_src+nextstart, cmdLen-1-nextstart));
+    }
+
+    char * abPath = NULL;
+    char * ret = NULL;
+    htnode *tmpNode = srcItemList->head;
+    while(tmpNode != NULL) {
+        abPath = getAbsolutePath(tmpNode->data);
+        ret = strchr(tmpNode->data, '*');
+        if (ret == NULL) {
+            if (isFile(abPath)) {
+                htAddNodeUseData(fileList, abPath);
+            } else if(isDir(abPath)) {
+                htfilerecursive(fileList, abPath);
+            } else {
+                printf("解析命令:%s, 路径:%s, 不是文件也不是文件夹\n", cmd_src, abPath );
+            }
+        } else {
+
+        }
+        tmpNode = tmpNode->nextNode;
+    }
+}
 
 /**
  * 命令格式@{tttt:pathstr}
@@ -25,29 +67,25 @@
  *          filepath1,filepath2,filepath3如果是文件夹或者模糊匹配时候代表文件夹下符合条件的文件
  */
 cmdentity * parseCmdStr(char *cmdStr) {
-    printf("src cmdStr:%s\n", cmdStr);
     int len = strlen(cmdStr);
     char tmp;
     int charIndex = 0;
     cmdentity *entity = malloc(sizeof(cmdentity)); 
     entity->src_cmd = cmdStr;
     entity->file_list = htCreateList();
-
-    // TODO 解析文件路径
-
-
+    entity->file_type = FILE_TYPE_NONE;
     if (strncmp("html", cmdStr + 2, (size_t)4) == 0) {
-        printf("%s is html!\n", cmdStr);
         entity->file_type = FILE_TYPE_HTML;
-        return entity;
     } else if (strncmp("mark", cmdStr + 2, (size_t)4) == 0) {
-        printf("%s is mark!\n", cmdStr);
         entity->file_type = FILE_TYPE_MARK;
-        return entity;
+    } else {
+        printf("未知的命令类型:%s\n", cmdStr);
     }
-
-    return NULL;
+    parseCmdFiles(entity->file_list, cmdStr);
+    return entity;
 }
+
+/**
 
 char * extraCmdStr(char *cmdStr, charindex *point) {
     return htSubstr(cmdStr+point->start, point->end - point->start + 1);
@@ -131,9 +169,6 @@ void parseFileV1(htlist *destList, char *rootFile) {
     } while(line != NULL);
 }
 
-/**
- * 递归编译一个文件
- */
 void parseFile(filedest *dest, char *filePath) {
     char *line, *destLine;
     charindex *point;
@@ -269,5 +304,6 @@ void buildRootFile(char *rootFile) {
     dest->endList = htCreateList();
     buildFile(dest);
 }
+*/
 
 

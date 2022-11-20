@@ -28,6 +28,7 @@ typedef struct build_context {
     filedest * dest;
 } buildcontext;
 
+void parseCmdFiles(htlist *files, char *cmd_src);
 
 // 结构体不能返回空
 charindex * searchCmdIndex(char *srcLine);

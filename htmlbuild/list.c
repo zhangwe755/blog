@@ -6,6 +6,8 @@
 
 htlist * htCreateList() {
     htlist *list = (htlist *)malloc(sizeof(htlist));
+    list->head = NULL;
+    list->end = NULL;
     list->len = 0;
     return list;
 }
@@ -24,8 +26,10 @@ void htAddNode(htlist *baseList, htnode *node) {
 }
 
 void htAddNodeUseData(htlist *baseList, void *data) {
-    htnode *node = (htnode *)malloc(sizeof(htnode));
+    htnode *node = malloc(sizeof(htnode));
     node->data = data;
+    node->preNode = NULL;
+    node->nextNode = NULL;
     htAddNode(baseList, node);
 }
 
