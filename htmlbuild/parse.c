@@ -47,6 +47,7 @@ void parseCmdFiles(htlist *fileList, char *cmd_src) {
                 printf("解析命令:%s, 路径:%s, 不是文件也不是文件夹\n", cmd_src, abPath );
             }
         } else {
+            // TODO 完善模糊匹配
 
         }
         tmpNode = tmpNode->nextNode;
@@ -85,7 +86,6 @@ cmdentity * parseCmdStr(char *cmdStr) {
     return entity;
 }
 
-/**
 
 char * extraCmdStr(char *cmdStr, charindex *point) {
     return htSubstr(cmdStr+point->start, point->end - point->start + 1);
@@ -125,48 +125,6 @@ void parseHtml(htlist *destList, char *src, cmdentity *cmd) {
     // end
     appendDestLine(destList, src + cmd->point->end + 1);
     free(line);
-}
-
-void parseFileV1(htlist *destList, char *rootFile) {
-    char *line, *destLine;
-    charindex *point;
-    cmdentity *cmd;
-    int len;
-    line = malloc(1024*100);
-    FILE *fp = NULL;
-    fp = fopen(rootFile, "r");
-    do {
-        line = fgets(line, 1024*100, fp);
-        if (line != NULL) {
-            len = strlen(line);
-            destLine = malloc(len+1);
-            strncpy(destLine, line, len);
-            destLine[len] = '\0';
-            printf("line ==> %s\n", line);
-            printf("destline ==> %s\n", destLine);
-            
-            // 解析文件，如果没有命令就直接写到临时文件
-            point = searchCmdIndex(destLine);
-            if (point == NULL) {
-                // 原始字符串
-                printf("point == null\n");
-                appendDestLine(destList, destLine);
-                continue;
-            }
-            cmd = parseCmdStr(extraCmdStr(destLine, point));
-            if (cmd == NULL) {
-                // 原始字符串
-                printf("cmd == null\n");
-                appendDestLine(destList, destLine);
-                continue;
-            }
-            cmd->point = point;
-            // 被识别的类型，需要解析
-            if (cmd->file_type == FILE_TYPE_HTML) {
-               parseHtml(destList, destLine, cmd);
-            }
-        }
-    } while(line != NULL);
 }
 
 void parseFile(filedest *dest, char *filePath) {
@@ -281,7 +239,7 @@ void buildFile(filedest *dest) {
                 appendDestLine(dest->startList, destLine);
                 continue;
             }
-            //TODO pre为空的时候需要判断
+
             char *pre = htSubstr(src, cmd->point->start);
             appendDestLine(dest->startList, pre);
             appendDestLine(dest->endList, src + cmd->point->end + 1);
@@ -304,6 +262,5 @@ void buildRootFile(char *rootFile) {
     dest->endList = htCreateList();
     buildFile(dest);
 }
-*/
 
 
