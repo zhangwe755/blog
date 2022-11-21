@@ -4,7 +4,7 @@ build-server:build-server.o $(objects)
 	gcc -o build-server build-server.o $(objects)
 
 clean:
-	rm -fr test build-server build-server.o $(objects)
+	rm -fr test test.o build-server build-server.o $(objects)
 
 
 test: test.o $(objects)
