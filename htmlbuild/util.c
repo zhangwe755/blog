@@ -38,6 +38,14 @@ char * htSubstr(char *src, int n) {
     return dest;
 }
 
+char * htStrCpy(char *src) {
+    int len = strlen(src);
+    char *dest = malloc(len+1);
+    strncpy(dest, line, len);
+    dest[len] = '\0';
+    return dest;
+}
+
 ///////////// file function 
 char* getAbsolutePath(char *path) {
     char buf[1024];

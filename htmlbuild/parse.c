@@ -4,23 +4,20 @@
 
 #include "parse.h"
 
-
-#define FILE_TYPE_NONE 0
-#define FILE_TYPE_HTML 1
-#define FILE_TYPE_MARK 2
-
-#define PATH_NORMAL 1
-#define PATH_FUZZY_NAME 2
-
 /**
  * 从命令中解析出包含的文件列表
  */
-void parseCmdFiles(htlist *fileList, char *cmd_src) {
+void parseCmdStr(int cmdType, void *strret, char *cmd_src) {
     int cmdLen = strlen(cmd_src);
 
-    htlist *srcItemList = htCreateList();
     // 解析|分割字符
     int start = 6, nextstart = 6;
+    if (cmdType & CMD_TYPE_PATH) {
+        strret = htSubstr(cmd_src+nextstart, cmdLen-1-nextstart);
+        return;
+    }
+
+    htlist *srcItemList = htCreateList();
     for (int i=start; i<cmdLen-1; i++) {
         if (cmd_src[i] != '|') {
             continue;
@@ -34,15 +31,16 @@ void parseCmdFiles(htlist *fileList, char *cmd_src) {
 
     char * abPath = NULL;
     char * ret = NULL;
+    strret = htCreateList();
     htnode *tmpNode = srcItemList->head;
     while(tmpNode != NULL) {
         abPath = getAbsolutePath(tmpNode->data);
         ret = strchr(tmpNode->data, '*');
         if (ret == NULL) {
             if (isFile(abPath)) {
-                htAddNodeUseData(fileList, abPath);
+                htAddNodeUseData(strret, abPath);
             } else if(isDir(abPath)) {
-                htfilerecursive(fileList, abPath);
+                htfilerecursive(strret, abPath);
             } else {
                 printf("解析命令:%s, 路径:%s, 不是文件也不是文件夹\n", cmd_src, abPath );
             }
@@ -67,22 +65,30 @@ void parseCmdFiles(htlist *fileList, char *cmd_src) {
  *      3: 枚举多个文件filepath1|filepath2|filepath3
  *          filepath1,filepath2,filepath3如果是文件夹或者模糊匹配时候代表文件夹下符合条件的文件
  */
-cmdentity * parseCmdStr(char *cmdStr) {
+cmdentity * parseCmd(char *cmdStr) {
     int len = strlen(cmdStr);
     char tmp;
     int charIndex = 0;
     cmdentity *entity = malloc(sizeof(cmdentity)); 
     entity->src_cmd = cmdStr;
-    entity->file_list = htCreateList();
-    entity->file_type = FILE_TYPE_NONE;
+    entity->cmd_type = CMD_TYPE_NONE;
+    entity->strret = NULL;
     if (strncmp("html", cmdStr + 2, (size_t)4) == 0) {
-        entity->file_type = FILE_TYPE_HTML;
+        entity->cmd_type = CMD_TYPE_HTML;
     } else if (strncmp("mark", cmdStr + 2, (size_t)4) == 0) {
-        entity->file_type = FILE_TYPE_MARK;
+        entity->cmd_type = CMD_TYPE_MARK;
+    } else if (strncmp("path", cmdStr + 2, (size_t)4) == 0) {
+        entity->cmd_type = CMD_TYPE_PATH;
     } else {
         printf("未知的命令类型:%s\n", cmdStr);
     }
-    parseCmdFiles(entity->file_list, cmdStr);
+    parseCmdStr(entity->cmd_type, entity->strret, cmdStr);
+    if ( entity->cmd_type & CMD_TYPE_HTML 
+            || entity->cmd_type & CMD_TYPE_MARK) {
+        if (entity->strret->len > 1) {
+            entity->cmd_type = entity->cmd_type & CMD_TYPE_MUTL;
+        }
+    }
     return entity;
 }
 
@@ -92,82 +98,17 @@ char * extraCmdStr(char *cmdStr, charindex *point) {
 }
 
 void appendDestLine(htlist *destList, char * destLine) {
-    htAddNodeUseData(destList, destLine);
+    linedest *line = malloc(sizeof(linedest));
+    line->line_type = LINE_TYPE_HTML;
+    line->data = destLine;
+    htAddNodeUseData(destList, line);
 }
 
-void parseHtml(htlist *destList, char *src, cmdentity *cmd) {
-    printf("parseHtml!\n");
-    printf("src %s, n:%d\n", src, cmd->point->start);
-    // pre
-    char *pre = htSubstr(src, cmd->point->start);
-    printf("pre %s\n", pre);
-   
-    appendDestLine(destList, pre);
-    printf("html path:%s\n", cmd->path);
-
-    char *line = malloc(1024*100);
-    int len = 0;
-    FILE *fp = NULL;
-    fp = fopen(cmd->path, "r");
-    printf("html path:%s\n", cmd->path);
-    do {
-        line = fgets(line, 1024*100, fp);
-        if (line != NULL) {
-            // appendLine
-            len = strlen(line);
-            char *tmpLine = malloc(len+1);
-            strncpy(tmpLine, line, len);
-            tmpLine[len] = '\0';
-            appendDestLine(destList, tmpLine);
-            printf("append:%s\n", tmpLine);
-        }
-    } while(line != NULL);
-    // end
-    appendDestLine(destList, src + cmd->point->end + 1);
-    free(line);
-}
-
-void parseFile(filedest *dest, char *filePath) {
-    char *line, *destLine;
-    charindex *point;
-    cmdentity *cmd;
-    htlist *middleFileList;
-    int len;
-    line = malloc(1024*100);
-    FILE *fp = NULL;
-    fp = fopen(rootFile, "r");
-    do {
-        line = fgets(line, 1024*100, fp);
-        if (line != NULL) {
-            len = strlen(line);
-            destLine = malloc(len+1);
-            strncpy(destLine, line, len);
-            destLine[len] = '\0';
-            printf("line ==> %s\n", line);
-            printf("destline ==> %s\n", destLine);
-            
-            // 解析文件，如果没有命令就直接写到临时文件
-            point = searchCmdIndex(destLine);
-            if (point == NULL) {
-                // 原始字符串
-                printf("point == null\n");
-                appendDestLine(dest->startList, destLine);
-                continue;
-            }
-            cmd = parseCmdStr(extraCmdStr(destLine, point));
-            if (cmd == NULL) {
-                // 原始字符串
-                printf("cmd == null\n");
-                appendDestLine(dest->startList, destLine);
-                continue;
-            }
-            cmd->point = point;
-            // 被识别的类型，需要解析
-            if (cmd->file_type == FILE_TYPE_HTML) {
-               parseHtml(destList, destLine, cmd);
-            }
-        }
-    } while(line != NULL);
+void appendDestCmd(htlist *destList, cmdentity * cmd) {
+    linedest *line = malloc(sizeof(linedest));
+    line->line_type = LINE_TYPE_CMD;
+    line->data = cmd;
+    htAddNodeUseData(destList, line);
 }
 
 charindex * searchCmdIndex(char *srcLine) {
@@ -208,64 +149,60 @@ void buildDestFile(htlist *destList, char *destFile) {
     }
 }
 
-void buildFile(filedest *dest) {
+void buildFile(buildcontext *dest) {
     char *line, *destLine;
     charindex *point;
     cmdentity *cmd;
     htlist *middleFileList;
+    char *oldCurFile = dest->cur_file;
     int len;
     line = malloc(1024*100);
-    FILE *fp = fopen(dest->srcPath, "r");
+    FILE *fp = fopen(dest->cur_file, "r");
     do {
         line = fgets(line, 1024*100, fp);
-        if (line != NULL) {
-            len = strlen(line);
-            destLine = malloc(len+1);
-            strncpy(destLine, line, len);
-            destLine[len] = '\0';
-            printf("line ==> %s\n", line);
-            printf("destline ==> %s\n", destLine);
-            
-            // 解析文件，如果没有命令就直接写到临时文件
-            point = searchCmdIndex(destLine);
-            if (point == NULL) {
-                // 原始字符串
-                appendDestLine(dest->startList, destLine);
-                continue;
-            }
-            cmd = parseCmdStr(extraCmdStr(destLine, point));
-            if (cmd == NULL) {
-                // 原始字符串
-                appendDestLine(dest->startList, destLine);
-                continue;
-            }
-
-            char *pre = htSubstr(src, cmd->point->start);
-            appendDestLine(dest->startList, pre);
-            appendDestLine(dest->endList, src + cmd->point->end + 1);
-
-            cmd->point = point;
-            // 被识别的类型，需要解析
-            if (cmd->file_type == FILE_TYPE_HTML) {
-               // 所有文件
-               // 解析
-               parseHtml(destList, destLine, cmd);
-               // 最上级需要解析直接写文件
-               // TODO 多个命令如何处理
-
-            }
+        if (line == NULL) {
+            break;
         }
+        destLine = htStrCpy(line);
+            
+        // 解析文件，如果没有命令就直接写到临时文件
+        point = searchCmdIndex(destLine);
+        if (point == NULL) {
+            // 原始字符串
+            appendDestLine(dest->retList, destLine);
+            continue;
+        }
+        cmd = parseCmd(extraCmdStr(destLine, point));
+        if (cmd == NULL) {
+            // 原始字符串
+            appendDestLine(dest->retList, destLine);
+            continue;
+        }
+
+        char *pre = htSubstr(src, cmd->point->start);
+        appendDestLine(dest->retList, pre);
+        
+        if (cmd->cmd_type & CMD_TYPE_PATH || cmd->cmd_type & CMD_TYPE_MUTL) {
+            appendDestCmd(dest->retList, cmd);
+            appendDestLine(dest->endList, src + cmd->point->end + 1);
+            continue;
+        }
+        oldCurFile = dest->cur_file;
+        dest->cur_file = cmd->strret->head->data;
+        buildFile(dest);
+        dest->cur_file = oldCurFile;
     } while(line != NULL);
 }
 
 void buildRootFile(char *rootFile) {
-    filedest *dest = malloc(sizeof(filedest));
-    dest->srcPath = rootFile;
-    dest->cmd = NULL;
-    dest->startList = htCreateList();
-    dest->middle = htCreateList();
-    dest->endList = htCreateList();
+    buildcontext *dest = malloc(sizeof(buildcontext));
+    dest->src_file = rootFile;
+    dest->cur_file = rootFile;
+    dest->dest_file= NULL;
+    dest->retList= htCreateList();
     buildFile(dest);
+    // 遍历节点依次写入获取dest_file
+    // 循环多文件命令, 遍历节点写入文件
 }
 
 

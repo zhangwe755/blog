@@ -27,6 +27,7 @@ typedef struct char_index {
 char * replacePart(char *src, int start, int end, char *part);
 char * replacePartUseIndex(char *src, charindex, char *part);
 char * htSubstr(char *src, int n);
+char * htStrCpy(char *src);
 
 // file fuction
 char * getAbsolutePath(char *path);

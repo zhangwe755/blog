@@ -7,12 +7,18 @@
 
 #define LINE_TYPE_HTML 0
 #define LINE_TYPE_CMD 1
-#define LINE_TYPE_PATH 2
+#define LINE_TYPE_CMD_RET 2
+
+#define CMD_TYPE_NONE 1 << 1
+#define CMD_TYPE_HTML 1 << 2
+#define CMD_TYPE_MARK 1 << 3
+#define CMD_TYPE_PATH 1 << 4
+#define CMD_TYPE_MUTL 1 << 8
 
 typedef struct cmd_entity {
-    int file_type;
+    int cmd_type;
     char *src_cmd;
-    htlist *file_list;
+    void *strret;
 } cmdentity;
 
 typedef struct line_dest {
@@ -20,33 +26,24 @@ typedef struct line_dest {
     void *data;
 } linedest;
 
-typedef struct line_cmd {
-    cmdentity *cmd;
-    htlist *lines;
-} linecmd;
-
 typedef struct root_cmd_list {
     char *file_content;
     htlist *cmdentitylist;
 } rootcmdlist;
 
 typedef struct file_dest {
-    char *srcPath;
-    cmdentity *cmd;
-    htlist *startList;
-    htlist *middle;
-    htlist *endList;
+    char *filePath;
+    htlist *contentList;
 } filedest;
 
 typedef struct build_context {
     char *src_file;
+    char *cur_file;
     char *dest_file;
-    filedest * dest;
+    htlist *retList;
 } buildcontext;
 
 #endif
-
-void parseCmdFiles(htlist *files, char *cmd_src);
 
 // 结构体不能返回空
 charindex * searchCmdIndex(char *srcLine);
