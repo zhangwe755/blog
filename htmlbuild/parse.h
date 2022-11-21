@@ -2,12 +2,28 @@
 #include "util.h"
 #include "list.h"
 
+#ifndef PARSE_FILE
+#define PARSE_FILE
+
+#define LINE_TYPE_HTML 0
+#define LINE_TYPE_CMD 1
+#define LINE_TYPE_PATH 2
 
 typedef struct cmd_entity {
     int file_type;
     char *src_cmd;
     htlist *file_list;
 } cmdentity;
+
+typedef struct line_dest {
+    int line_type;
+    void *data;
+} linedest;
+
+typedef struct line_cmd {
+    cmdentity *cmd;
+    htlist *lines;
+} linecmd;
 
 typedef struct root_cmd_list {
     char *file_content;
@@ -27,6 +43,8 @@ typedef struct build_context {
     char *dest_file;
     filedest * dest;
 } buildcontext;
+
+#endif
 
 void parseCmdFiles(htlist *files, char *cmd_src);
 

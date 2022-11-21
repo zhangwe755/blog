@@ -247,7 +247,12 @@ void buildFile(filedest *dest) {
             cmd->point = point;
             // 被识别的类型，需要解析
             if (cmd->file_type == FILE_TYPE_HTML) {
+               // 所有文件
+               // 解析
                parseHtml(destList, destLine, cmd);
+               // 最上级需要解析直接写文件
+               // TODO 多个命令如何处理
+
             }
         }
     } while(line != NULL);
