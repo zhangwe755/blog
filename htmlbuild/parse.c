@@ -13,8 +13,11 @@ void parseCmdStr(int cmdType, void *strret, char *cmd_src) {
 
     // 解析|分割字符
     int start = 7, nextstart = 7;
+    printf("==============>cmdType:%d, cmdtypepath:%d\n", cmdType, CMD_TYPE_PATH);
     if (cmdType & CMD_TYPE_PATH) {
+        printf("path\n");
         strret = htSubstr(cmd_src+nextstart, cmdLen-1-nextstart);
+        printf("找path:%s\n", strret);
         return;
     }
 
@@ -78,6 +81,7 @@ cmdentity * parseCmd(char *cmdStr) {
     entity->src_cmd = cmdStr;
     entity->cmd_type = CMD_TYPE_NONE;
     entity->strret = htCreateList();
+    printf("尝试解析命令:%s\n", cmdStr);
     if (strncmp("html", cmdStr + 2, (size_t)4) == 0) {
         entity->cmd_type = CMD_TYPE_HTML;
     } else if (strncmp("mark", cmdStr + 2, (size_t)4) == 0) {
@@ -99,6 +103,10 @@ cmdentity * parseCmd(char *cmdStr) {
             entity->cmd_type = entity->cmd_type | CMD_TYPE_MUTL;
         }
     }
+    if ( entity->cmd_type & CMD_TYPE_PATH) {
+        printf("===>path:%s\n", entity->strret);
+    }
+
     return entity;
 }
 
@@ -124,24 +132,28 @@ void appendDestCmd(htlist *destList, cmdentity * cmd) {
 charindex * searchCmdIndex(char *srcLine) {
     charindex * point = malloc(sizeof(charindex));
     int len = strlen(srcLine);
-    int pre = 0, cmd = 0;
+    int pre = -1, incmd = 0;
     char tmp;
+    printf("输入行:%s, 长度:%d\n", srcLine, len);
     for (int i=0; i<len; i++) {
         tmp = srcLine[i];
-        if (pre && cmd) {
+        if (pre>=0 && incmd) {
             if (tmp == '}') {
+                printf("找到命令中\n");
                 point->start = pre;
                 point->end = i;
                 return point;
             }
-        } else if(pre && !cmd) {
+        } else if(pre>=0 && !incmd) {
             if (tmp == '{') {
-                cmd = 1;
+                printf("命令中\n");
+                incmd = 1;
             } else {
-                pre = 0;
+                pre = -1;
             }
         } else {
             if (tmp == '@') {
+                printf("找到pre\n");
                 pre = i;
             }
         }
@@ -174,11 +186,13 @@ void buildFile(buildcontext *dest) {
             break;
         }
         destLine = htStrCpy(line);
+        printf("开始解析行:%s\n", destLine);
             
         // 解析文件，如果没有命令就直接写到临时文件
         point = searchCmdIndex(destLine);
         if (point == NULL) {
             // 原始字符串
+            printf("没有找到命令\n");
             appendDestLine(dest->retList, destLine);
             continue;
         }
@@ -215,6 +229,21 @@ void buildRootFile(char *rootFile) {
     dest->retList= htCreateList();
     buildFile(dest);
     htnode *tmp = dest->retList->head;
+    htlist *pathlist = htCreateList();
+    do {
+        linedest *line = (linedest *)tmp->data;
+        if (line->line_type == LINE_TYPE_CMD) {
+            cmdentity *entity = (cmdentity *)line->data;
+            printf("cmd 类型行数据, 原始命令:%s\n", entity->src_cmd);
+            if (entity->cmd_type & CMD_TYPE_PATH) {
+                printf("cmd 类型行数据, 路径:%s\n", entity->strret);
+            }
+        }        
+        tmp = tmp->nextNode;
+    } while(tmp != NULL);
+    printf("path 数据完成\n");
+
+    tmp = dest->retList->head;
     do {
         linedest *line = (linedest *)tmp->data;
         if ( line->line_type == LINE_TYPE_HTML) {
