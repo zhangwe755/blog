@@ -34,6 +34,7 @@ void parseCmdStr(int cmdType, void *strret, char *cmd_src) {
     strret = htCreateList();
     htnode *tmpNode = srcItemList->head;
     while(tmpNode != NULL) {
+        printf("node data:%s\n", tmpNode->data);
         abPath = getAbsolutePath(tmpNode->data);
         ret = strchr(tmpNode->data, '*');
         if (ret == NULL) {
@@ -203,6 +204,19 @@ void buildRootFile(char *rootFile) {
     dest->dest_file= NULL;
     dest->retList= htCreateList();
     buildFile(dest);
+    htnode *tmp = dest->retList->head;
+    do {
+        linedest *line = (linedest *)tmp->data;
+        if ( line->line_type == LINE_TYPE_HTML) {
+            printf("html 类型行数据:%s\n", line->data);
+        } else if (line->line_type == LINE_TYPE_CMD) {
+            cmdentity *entity = (cmdentity *)line->data;
+            printf("cmd 类型行数据, 原始命令:%s\n", entity->src_cmd);
+        } else {
+            printf("未知的行数据类型\n");
+        }
+        tmp = tmp->nextNode;
+    } while(tmp != NULL);
     // 遍历节点依次写入获取dest_file
     // 循环多文件命令, 遍历节点写入文件
 }

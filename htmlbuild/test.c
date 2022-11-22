@@ -5,6 +5,7 @@
 #include "list.h"
 
 int main() {
-    printf("test\n");
+    char *rootFile = "/Users/apple/soft/blog/templete/src/rootdir/index.btm";
+    buildRootFile(rootFile);
 }
 
