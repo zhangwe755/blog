@@ -51,8 +51,9 @@ char* getAbsolutePath(char *path) {
     char buf[1024];
     char *abPath;
     size_t pathStart = 0;
+    printf("===>path:%s\n", path);
     if (path[0] == '/') {
-        abPath = malloc(strlen(path));
+        abPath = malloc(strlen(path)+1);
         strcpy(abPath, path);
         abPath[strlen(path)] = '\0';
         printf("==>abPath : %s abPathSize:%lu, strlen:%lu\n", abPath, sizeof(abPath), strlen(abPath));

@@ -9,9 +9,10 @@
  */
 void parseCmdStr(int cmdType, void *strret, char *cmd_src) {
     int cmdLen = strlen(cmd_src);
+    printf("cmd_src:%s\n", cmd_src);
 
     // 解析|分割字符
-    int start = 6, nextstart = 6;
+    int start = 7, nextstart = 7;
     if (cmdType & CMD_TYPE_PATH) {
         strret = htSubstr(cmd_src+nextstart, cmdLen-1-nextstart);
         return;
@@ -31,7 +32,7 @@ void parseCmdStr(int cmdType, void *strret, char *cmd_src) {
 
     char * abPath = NULL;
     char * ret = NULL;
-    strret = htCreateList();
+    printf("list:len:%d\n",((htlist *)strret)->len);
     htnode *tmpNode = srcItemList->head;
     while(tmpNode != NULL) {
         printf("node data:%s\n", tmpNode->data);
@@ -51,6 +52,7 @@ void parseCmdStr(int cmdType, void *strret, char *cmd_src) {
         }
         tmpNode = tmpNode->nextNode;
     }
+    printf("list:len:%d\n",((htlist *)strret)->len);
 }
 
 /**
@@ -73,7 +75,7 @@ cmdentity * parseCmd(char *cmdStr) {
     cmdentity *entity = malloc(sizeof(cmdentity)); 
     entity->src_cmd = cmdStr;
     entity->cmd_type = CMD_TYPE_NONE;
-    entity->strret = NULL;
+    entity->strret = htCreateList();
     if (strncmp("html", cmdStr + 2, (size_t)4) == 0) {
         entity->cmd_type = CMD_TYPE_HTML;
     } else if (strncmp("mark", cmdStr + 2, (size_t)4) == 0) {
@@ -84,12 +86,17 @@ cmdentity * parseCmd(char *cmdStr) {
         printf("未知的命令类型:%s\n", cmdStr);
     }
     parseCmdStr(entity->cmd_type, entity->strret, cmdStr);
+    printf("===>解析命令完成\n");
     if ( entity->cmd_type & CMD_TYPE_HTML 
             || entity->cmd_type & CMD_TYPE_MARK) {
-        htlist *filelist = (htlist *)entity->strret;
+        printf("===>文件夹列表\n");
+        htlist *filelist = (htlist *)(entity->strret);
+        printf("===>文件夹列表强制类型转换成\n");
+        printf("===>文件夹列表强制类型转换成, 文件数量:%d\n", filelist->len);
         if (filelist->len > 1) {
             entity->cmd_type = entity->cmd_type & CMD_TYPE_MUTL;
         }
+        printf("===>文件夹列表2\n");
     }
     return entity;
 }
@@ -194,6 +201,7 @@ void buildFile(buildcontext *dest) {
         dest->cur_file = filelist->head->data;
         buildFile(dest);
         dest->cur_file = oldCurFile;
+        appendDestLine(dest->retList, destLine + point->end + 1);
     } while(line != NULL);
 }
 
