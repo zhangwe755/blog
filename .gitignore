@@ -1,0 +1,5 @@
+#.gtignore
+*.o
+*.swp
+test
+build-server
