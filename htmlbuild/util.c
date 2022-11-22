@@ -144,13 +144,15 @@ htlist * htfilerecursive(htlist *filelist, char *basePath) {
     char *tmpPath;
     DIR *dir = opendir(basePath);
     int len;
+    printf("文件夹循环");
 
    	// 如果是文件则直接结束此次调用
-    if (!dir) {
+    if (dir == NULL) {
         len = strlen(basePath);
         tmpPath = malloc(len+1);
         strcpy(tmpPath, basePath);
         tmpPath[len] = '\0';
+        printf("文件夹循环获取文件:%s\n", tmpPath);
         htAddNodeUseData(filelist, tmpPath);
         return filelist;
     }

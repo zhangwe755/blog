@@ -32,7 +32,7 @@ void parseCmdStr(int cmdType, void *strret, char *cmd_src) {
 
     char * abPath = NULL;
     char * ret = NULL;
-    printf("list:len:%d\n",((htlist *)strret)->len);
+    printf("list:len:%d, srcItemList:%d\n",((htlist *)strret)->len, srcItemList->len);
     htnode *tmpNode = srcItemList->head;
     while(tmpNode != NULL) {
         printf("node data:%s\n", tmpNode->data);
@@ -42,6 +42,7 @@ void parseCmdStr(int cmdType, void *strret, char *cmd_src) {
             if (isFile(abPath)) {
                 htAddNodeUseData(strret, abPath);
             } else if(isDir(abPath)) {
+                printf("命令中的问题文件夹\n"); 
                 htfilerecursive(strret, abPath);
             } else {
                 printf("解析命令:%s, 路径:%s, 不是文件也不是文件夹\n", cmd_src, abPath );
@@ -192,6 +193,7 @@ void buildFile(buildcontext *dest) {
         appendDestLine(dest->retList, pre);
         
         if (cmd->cmd_type & CMD_TYPE_PATH || cmd->cmd_type & CMD_TYPE_MUTL) {
+            printf("cmd type!\n");
             appendDestCmd(dest->retList, cmd);
             appendDestLine(dest->retList, destLine + point->end + 1);
             continue;
