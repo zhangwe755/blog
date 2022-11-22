@@ -42,8 +42,9 @@ void parseCmdStr(int cmdType, void *strret, char *cmd_src) {
             if (isFile(abPath)) {
                 htAddNodeUseData(strret, abPath);
             } else if(isDir(abPath)) {
-                printf("命令中的问题文件夹\n"); 
+                printf("=========> start abPath:%s\n", abPath); 
                 htfilerecursive(strret, abPath);
+                printf("=========> end abPath:%s\n", abPath); 
             } else {
                 printf("解析命令:%s, 路径:%s, 不是文件也不是文件夹\n", cmd_src, abPath );
             }
@@ -92,12 +93,11 @@ cmdentity * parseCmd(char *cmdStr) {
             || entity->cmd_type & CMD_TYPE_MARK) {
         printf("===>文件夹列表\n");
         htlist *filelist = (htlist *)(entity->strret);
-        printf("===>文件夹列表强制类型转换成\n");
         printf("===>文件夹列表强制类型转换成, 文件数量:%d\n", filelist->len);
         if (filelist->len > 1) {
-            entity->cmd_type = entity->cmd_type & CMD_TYPE_MUTL;
+            printf("===>cmd type mutl!\n");
+            entity->cmd_type = entity->cmd_type | CMD_TYPE_MUTL;
         }
-        printf("===>文件夹列表2\n");
     }
     return entity;
 }
@@ -192,8 +192,8 @@ void buildFile(buildcontext *dest) {
         char *pre = htSubstr(destLine, point->start);
         appendDestLine(dest->retList, pre);
         
-        if (cmd->cmd_type & CMD_TYPE_PATH || cmd->cmd_type & CMD_TYPE_MUTL) {
-            printf("cmd type!\n");
+        if ((cmd->cmd_type & CMD_TYPE_PATH) || (cmd->cmd_type & CMD_TYPE_MUTL)) {
+            printf("==============> $$$$$$$$$$cmd type!\n");
             appendDestCmd(dest->retList, cmd);
             appendDestLine(dest->retList, destLine + point->end + 1);
             continue;
