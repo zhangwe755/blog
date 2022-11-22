@@ -85,7 +85,8 @@ cmdentity * parseCmd(char *cmdStr) {
     parseCmdStr(entity->cmd_type, entity->strret, cmdStr);
     if ( entity->cmd_type & CMD_TYPE_HTML 
             || entity->cmd_type & CMD_TYPE_MARK) {
-        if (entity->strret->len > 1) {
+        htlist *filelist = (htlist *)entity->strret;
+        if (filelist->len > 1) {
             entity->cmd_type = entity->cmd_type & CMD_TYPE_MUTL;
         }
     }
@@ -179,16 +180,17 @@ void buildFile(buildcontext *dest) {
             continue;
         }
 
-        char *pre = htSubstr(src, cmd->point->start);
+        char *pre = htSubstr(destLine, point->start);
         appendDestLine(dest->retList, pre);
         
         if (cmd->cmd_type & CMD_TYPE_PATH || cmd->cmd_type & CMD_TYPE_MUTL) {
             appendDestCmd(dest->retList, cmd);
-            appendDestLine(dest->endList, src + cmd->point->end + 1);
+            appendDestLine(dest->retList, destLine + point->end + 1);
             continue;
         }
         oldCurFile = dest->cur_file;
-        dest->cur_file = cmd->strret->head->data;
+        htlist *filelist = (htlist *)cmd->strret;
+        dest->cur_file = filelist->head->data;
         buildFile(dest);
         dest->cur_file = oldCurFile;
     } while(line != NULL);

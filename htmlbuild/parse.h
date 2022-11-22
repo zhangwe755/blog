@@ -50,10 +50,8 @@ charindex * searchCmdIndex(char *srcLine);
 
 void parseHtml(htlist *destlist, char *src, cmdentity *cmd);
 
-cmdentity * parseCmdStr(char *cmdStr);
+cmdentity * parseCmd(char *cmdStr);
 
 void appendDestLine(htlist *destList, char * destLine);
 
-//void parseFile(htlist *destList, char *rootFile);
-
-void buildFile(char *rootFile);
+void buildRootFile(char *rootFile);

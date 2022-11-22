@@ -41,7 +41,7 @@ char * htSubstr(char *src, int n) {
 char * htStrCpy(char *src) {
     int len = strlen(src);
     char *dest = malloc(len+1);
-    strncpy(dest, line, len);
+    strncpy(dest, src, len);
     dest[len] = '\0';
     return dest;
 }
