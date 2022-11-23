@@ -3,12 +3,15 @@
 
 #include "list.h"
 
-
-htlist * htCreateList() {
-    htlist *list = (htlist *)malloc(sizeof(htlist));
+void htCleanList(htlist *list) {
     list->head = NULL;
     list->end = NULL;
     list->len = 0;
+}
+
+htlist * htCreateList() {
+    htlist *list = (htlist *)malloc(sizeof(htlist));
+    htCleanList(list);
     return list;
 }
 
@@ -53,4 +56,6 @@ void htRemoveNode(htlist *baseList, htnode *node) {
     free(node);
     baseList->len--;
 }
+
+
 

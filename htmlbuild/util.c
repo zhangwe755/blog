@@ -46,6 +46,21 @@ char * htStrCpy(char *src) {
     return dest;
 }
 
+char * htContact(char*[] strList) {
+    int len = 0;
+    for (int i=0;i<strList.length;i++) {
+        len += strlen(strList[i]);
+    }
+    if (len == 0) {
+        return NULL;
+    }
+    char *dest = malloc(len);
+    for (int i=0;i<strList.length;i++) {
+        strcat(dest, strList[i]);
+    }
+    return dest;
+}
+
 ///////////// file function 
 char* getAbsolutePath(char *path) {
     char buf[1024];

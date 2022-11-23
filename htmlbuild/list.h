@@ -22,5 +22,7 @@ void htAddNode(htlist *baseList, htnode *node);
 void htAddNodeUseData(htlist *baseList, void *data);
 void htRemoveNode(htlist *baseList, htnode *node);
 
+void htCleanList(htlist *baseList);
+
 
 

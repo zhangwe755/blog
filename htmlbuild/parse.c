@@ -225,6 +225,7 @@ void buildFile(buildcontext *dest) {
 }
 
 void extraPath(htlist *pathList, buildcontext *dest) {
+    htCleanList(pathList);
     htnode *tmp = dest->retList->head;
     do {
         linedest *line = (linedest *)tmp->data;
@@ -252,15 +253,19 @@ cmdentity * extramutl(buildcontext *dest) {
     } while(tmp != NULL);
 }
 
-void writeLine(buildcontext *dest) {
+void writeLine(FILE *fp, buildcontext *dest) {
     htnode *tmp = dest->retList->head;
     do {
         linedest *line = (linedest *)tmp->data;
         if ( line->line_type == LINE_TYPE_HTML) {
             // 写数据
+            fputs(line->data ,fp);
             printf("html 类型行数据:%s\n", line->data);
         } else if (line->line_type == LINE_TYPE_CMD) {
             cmdentity *entity = (cmdentity *)line->data;
+            if (!(entity->cmd_type & CMD_TYPE_PATH)) {
+                fputs(entity->str_cmd ,fp);
+            }
             printf("cmd 类型行数据, 原始命令:%s\n", entity->src_cmd);
         } else {
             printf("未知的行数据类型\n");
@@ -269,18 +274,18 @@ void writeLine(buildcontext *dest) {
     } while(tmp != NULL);
 }
 
-void writeMulLine(buildcontext *dest, buildcontext *mulItemDest) {
+void writeMulLine(FILE *fp, buildcontext *dest, buildcontext *mulItemDest) {
     htnode *tmp = dest->retList->head;
     do {
         linedest *line = (linedest *)tmp->data;
         if ( line->line_type == LINE_TYPE_HTML) {
              // 写数据
+             fputs(line->data ,fp);
              printf("html 类型行数据:%s\n", line->data);
         } else if (line->line_type == LINE_TYPE_CMD) {
              cmdentity *entity = (cmdentity *)line->data;
              if (entity->cmd_type & CMD_TYPE_MUTL) {
-                 // 写中间文件
-                 continue;
+                 writeLine(fp, mulItemDest);
              }
              printf("cmd 类型行数据, 原始命令:%s\n", entity->src_cmd);
         } else {
@@ -290,7 +295,24 @@ void writeMulLine(buildcontext *dest, buildcontext *mulItemDest) {
     } while(tmp != NULL);
 }
 
-
+char * destFile(htlist *prePathList, htlist *tmpPathList) {
+    int len = prePathList->len + tmpPathList->len;
+    char *[len] strList;
+    int i = 0;
+    htnode *tmp = pathList->head;
+    while(tmp != NULL)  {
+        strList[i] = tmp->data;
+        tmp = tmp->nextNode;
+        i++;
+    }
+    tmp = tmpPathList->head;
+    while(tmp != NULL)  {
+        strList[i] = tmp->data;
+        tmp = tmp->nextNode;
+        i++;
+    }
+    return htContact(strList);
+}
 
 void buildRootFile(char *rootFile) {
     buildcontext *dest = malloc(sizeof(buildcontext));
@@ -319,12 +341,18 @@ void buildRootFile(char *rootFile) {
             buildFile(muItemDest);
 
             extraPath(tmpPathList, muItemDest->retList);
-            writeMulLine(dest, muItemDest);
 
+            dest->dest_file = destFile(prePathList, tmpPathList);
+            FILE *fp = deleteAndCreateFile(dest->dest_file);
+            writeMulLine(fp, dest, muItemDest);
+            fclose(fp);
             tmpfilenode = tmpfilenode->nextNode;
         }
     } else {
-        writeLine(dest);
+        dest->dest_file = destFile(prePathList, tmpPathList);
+        FILE *fp = deleteAndCreateFile(dest->dest_file);
+        writeLine(fp, dest);
+        fclose(fp);
     }
 }
 
