@@ -265,7 +265,7 @@ cmdentity * extramutl(buildcontext *dest) {
 
 void htwrite(char *str, FILE *fp) {
     int len = strlen(str);
-    for (int i=0;i<len-1;i++) {
+    for (int i=0;i<len;i++) {
         fputc(str[i], fp);
     }
 }
