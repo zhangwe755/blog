@@ -209,6 +209,7 @@ void buildFile(buildcontext *dest) {
         }
 
         char *pre = htSubstr(destLine, point->start);
+        printf("=================>pre is:%s", pre);
         appendDestLine(dest->retList, pre);
         
         if ((cmd->cmd_type & CMD_TYPE_PATH) || (cmd->cmd_type & CMD_TYPE_MUTL)) {
@@ -262,18 +263,25 @@ cmdentity * extramutl(buildcontext *dest) {
     return mutlentity;
 }
 
+void htwrite(char *str, FILE *fp) {
+    int len = strlen(str);
+    for (int i=0;i<len-1;i++) {
+        fputc(str[i], fp);
+    }
+}
+
 void writeLine(FILE *fp, buildcontext *dest) {
     htnode *tmp = dest->retList->head;
     do {
         linedest *line = (linedest *)tmp->data;
         if ( line->line_type == LINE_TYPE_HTML) {
             // 写数据
-            fputs(line->data ,fp);
+            htwrite(line->data ,fp);
             printf("html 类型行数据:%s\n", line->data);
         } else if (line->line_type == LINE_TYPE_CMD) {
             cmdentity *entity = (cmdentity *)line->data;
             if (!(entity->cmd_type & CMD_TYPE_PATH)) {
-                fputs(entity->src_cmd ,fp);
+                htwrite(entity->src_cmd ,fp);
             }
             printf("cmd 类型行数据, 原始命令:%s\n", entity->src_cmd);
         } else {
@@ -284,14 +292,12 @@ void writeLine(FILE *fp, buildcontext *dest) {
 }
 
 void writeMulLine(FILE *fp, buildcontext *dest, buildcontext *mulItemDest) {
-    printf("write mul file!\n");
     htnode *tmp = dest->retList->head;
     do {
-        printf("write while!\n");
         linedest *line = (linedest *)tmp->data;
         if ( line->line_type == LINE_TYPE_HTML) {
              // 写数据
-             fputs(line->data ,fp);
+             htwrite(line->data ,fp);
              printf("html 类型行数据:%s\n", line->data);
         } else if (line->line_type == LINE_TYPE_CMD) {
              cmdentity *entity = (cmdentity *)line->data;
