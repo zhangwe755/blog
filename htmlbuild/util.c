@@ -46,16 +46,16 @@ char * htStrCpy(char *src) {
     return dest;
 }
 
-char * htContact(char*[] strList) {
+char * htContact(char* strList[], int length) {
     int len = 0;
-    for (int i=0;i<strList.length;i++) {
+    for (int i=0;i<length;i++) {
         len += strlen(strList[i]);
     }
     if (len == 0) {
         return NULL;
     }
     char *dest = malloc(len);
-    for (int i=0;i<strList.length;i++) {
+    for (int i=0;i<length;i++) {
         strcat(dest, strList[i]);
     }
     return dest;

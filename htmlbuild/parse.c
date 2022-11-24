@@ -230,6 +230,7 @@ void extraPath(htlist *pathList, buildcontext *dest) {
     do {
         linedest *line = (linedest *)tmp->data;
         if (line->line_type == LINE_TYPE_CMD) {
+            cmdentity *entity = (cmdentity *)line->data;
             if (entity->cmd_type & CMD_TYPE_PATH) {
                 htAddNodeUseData(pathList, entity->strret);
             }
@@ -251,6 +252,7 @@ cmdentity * extramutl(buildcontext *dest) {
         }        
         tmp = tmp->nextNode;
     } while(tmp != NULL);
+    return mutlentity;
 }
 
 void writeLine(FILE *fp, buildcontext *dest) {
@@ -264,7 +266,7 @@ void writeLine(FILE *fp, buildcontext *dest) {
         } else if (line->line_type == LINE_TYPE_CMD) {
             cmdentity *entity = (cmdentity *)line->data;
             if (!(entity->cmd_type & CMD_TYPE_PATH)) {
-                fputs(entity->str_cmd ,fp);
+                fputs(entity->src_cmd ,fp);
             }
             printf("cmd 类型行数据, 原始命令:%s\n", entity->src_cmd);
         } else {
@@ -297,21 +299,21 @@ void writeMulLine(FILE *fp, buildcontext *dest, buildcontext *mulItemDest) {
 
 char * destFile(htlist *prePathList, htlist *tmpPathList) {
     int len = prePathList->len + tmpPathList->len;
-    char *[len] strList;
-    int i = 0;
-    htnode *tmp = pathList->head;
+    char * strList[len];
+    int i = -1;
+    htnode *tmp = prePathList->head;
     while(tmp != NULL)  {
+        i++;
         strList[i] = tmp->data;
         tmp = tmp->nextNode;
-        i++;
     }
     tmp = tmpPathList->head;
     while(tmp != NULL)  {
+        i++;
         strList[i] = tmp->data;
         tmp = tmp->nextNode;
-        i++;
     }
-    return htContact(strList);
+    return htContact(strList, i+1);
 }
 
 void buildRootFile(char *rootFile) {
@@ -328,7 +330,7 @@ void buildRootFile(char *rootFile) {
     extraPath(prePathList, dest);
     cmdentity *mutlentity = extramutl(dest);
 
-    if (mutilentity != NULL) {
+    if (mutlentity != NULL) {
         htlist *fileList = (htlist *)mutlentity->strret;
         htnode *tmpfilenode = fileList->head;
         while(tmpfilenode != NULL) {
@@ -340,7 +342,7 @@ void buildRootFile(char *rootFile) {
             muItemDest->retList= htCreateList();
             buildFile(muItemDest);
 
-            extraPath(tmpPathList, muItemDest->retList);
+            extraPath(tmpPathList, muItemDest);
 
             dest->dest_file = destFile(prePathList, tmpPathList);
             FILE *fp = deleteAndCreateFile(dest->dest_file);

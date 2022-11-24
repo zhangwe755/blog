@@ -28,7 +28,7 @@ char * replacePart(char *src, int start, int end, char *part);
 char * replacePartUseIndex(char *src, charindex, char *part);
 char * htSubstr(char *src, int n);
 char * htStrCpy(char *src);
-char * htContact(char*[] strList);
+char * htContact(char* strList[], int length);
 
 // file fuction
 char * getAbsolutePath(char *path);
