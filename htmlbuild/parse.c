@@ -186,16 +186,18 @@ void buildFile(buildcontext *dest) {
     do {
         line = fgets(line, 1024*100, fp);
         if (line == NULL) {
+            printf("文件夹结束:%s\n", dest->cur_file);
             break;
         }
+        printf("开始解析行:%s\n", line);
         destLine = htStrCpy(line);
-        printf("开始解析行:%s\n", destLine);
+        printf("原始数据复制:%s\n", destLine);
             
         // 解析文件，如果没有命令就直接写到临时文件
         point = searchCmdIndex(destLine);
         if (point == NULL) {
             // 原始字符串
-            printf("没有找到命令\n");
+            printf("无命令行, 原始数:%s\n",destLine);
             appendDestLine(dest->retList, destLine);
             continue;
         }
@@ -225,18 +227,23 @@ void buildFile(buildcontext *dest) {
 }
 
 void extraPath(htlist *pathList, buildcontext *dest) {
+    printf("extraPath:%s\n", dest->cur_file);
     htCleanList(pathList);
+    printf("extraPath:clean path liest\n");
+
     htnode *tmp = dest->retList->head;
     do {
         linedest *line = (linedest *)tmp->data;
         if (line->line_type == LINE_TYPE_CMD) {
             cmdentity *entity = (cmdentity *)line->data;
             if (entity->cmd_type & CMD_TYPE_PATH) {
+                printf("extraPath:src cmd:%s\n", entity->src_cmd);
                 htAddNodeUseData(pathList, entity->strret);
             }
         }        
         tmp = tmp->nextNode;
     } while(tmp != NULL);
+    printf("extraPath:stop\n");
 }
 
 cmdentity * extramutl(buildcontext *dest) {
@@ -277,8 +284,10 @@ void writeLine(FILE *fp, buildcontext *dest) {
 }
 
 void writeMulLine(FILE *fp, buildcontext *dest, buildcontext *mulItemDest) {
+    printf("write mul file!\n");
     htnode *tmp = dest->retList->head;
     do {
+        printf("write while!\n");
         linedest *line = (linedest *)tmp->data;
         if ( line->line_type == LINE_TYPE_HTML) {
              // 写数据
@@ -297,6 +306,9 @@ void writeMulLine(FILE *fp, buildcontext *dest, buildcontext *mulItemDest) {
     } while(tmp != NULL);
 }
 
+/**
+ * 生成目标文件
+ */
 char * destFile(htlist *prePathList, htlist *tmpPathList) {
     int len = prePathList->len + tmpPathList->len;
     char * strList[len];
@@ -335,6 +347,7 @@ void buildRootFile(char *rootFile) {
         htnode *tmpfilenode = fileList->head;
         while(tmpfilenode != NULL) {
             // 编译每个文件
+            printf("\n\n\nbuild partfile start: %s\n", tmpfilenode->data);
             buildcontext *muItemDest = malloc(sizeof(buildcontext));
             muItemDest->src_file = tmpfilenode->data;
             muItemDest->cur_file = tmpfilenode->data;
@@ -344,10 +357,17 @@ void buildRootFile(char *rootFile) {
 
             extraPath(tmpPathList, muItemDest);
 
+            printf("start create destFilePath\n");
+
             dest->dest_file = destFile(prePathList, tmpPathList);
+            printf("end create destFilePath, dest_file:%s\n", dest->dest_file);
+
             FILE *fp = deleteAndCreateFile(dest->dest_file);
+            printf("finish create destFile\n");
             writeMulLine(fp, dest, muItemDest);
+            printf("finish write hestFile\n");
             fclose(fp);
+            printf("\n\n\nbuild partfile end: %s\n", tmpfilenode->data);
             tmpfilenode = tmpfilenode->nextNode;
         }
     } else {

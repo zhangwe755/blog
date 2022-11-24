@@ -54,10 +54,11 @@ char * htContact(char* strList[], int length) {
     if (len == 0) {
         return NULL;
     }
-    char *dest = malloc(len);
+    char *dest = malloc(len+1);
     for (int i=0;i<length;i++) {
         strcat(dest, strList[i]);
     }
+    dest[len] = '\0';
     return dest;
 }
 
@@ -141,12 +142,17 @@ void createDir(char *dirPath) {
 }
 
 FILE *deleteAndCreateFile(char *filePath) {
+    printf("function deleteAndCreateFile:%s\n", filePath);
     if (isFile(filePath)) {
         remove(filePath);
     }
+    printf("function deleteAndCreateFile clear file:%s\n", filePath);
     char *src = malloc(strlen(filePath));
+    printf("function deleteAndCreateFile src file===>:%s\n", filePath);
     strcpy(src, filePath);
+    printf("function deleteAndCreateFile src file:%s\n", src);
     filePath = dirname(filePath);
+    printf("function deleteAndCreateFile filePath:%s\n", filePath);
     createDir(filePath);
     FILE *fp = fopen(src, "w");
     return fp;
