@@ -7,12 +7,11 @@
 
 
 typedef struct ht_watch_context {
-
     struct kevent tmpEvent;
     int kq;
-
+    void *delete_handler;
+    void *update_handler;
     htdict *filedict;
-
     htdict *fddict;
 } htwatchcontext;
 
