@@ -2,6 +2,10 @@
 
 #include "dict.h"
 
+#ifndef HT_WATCH
+#define HT_WATCH
+
+
 typedef struct ht_watch_context {
 
     struct kevent tmpEvent;
@@ -13,6 +17,8 @@ typedef struct ht_watch_context {
 } htwatchcontext;
 
 htwatchcontext htwatch;
+
+#endif
 
 void ht_watch_init();
 void ht_watch_join(char *fileName);
