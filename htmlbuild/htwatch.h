@@ -9,8 +9,8 @@
 typedef struct ht_watch_context {
     struct kevent tmpEvent;
     int kq;
-    void *delete_handler;
-    void *update_handler;
+    void (*delete_handler)(char*);
+    void (*update_handler)(char*);
     htdict *filedict;
     htdict *fddict;
 } htwatchcontext;

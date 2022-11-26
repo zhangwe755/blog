@@ -26,6 +26,8 @@ void ht_watch_init() {
         printf("kqueue init error!\n");
         return;
     }
+    htwatch.update_handler = NULL;
+    htwatch.delete_handler = NULL;
 }
 
 void ht_watch_join(char *fileName) {
@@ -43,6 +45,9 @@ void ht_watch_handler_edit(struct kevent event) {
     char *key = ht_watch_fd(event.ident);
     char *fileName = (char *)htDictGet(htwatch.filedict, key);
     printf("File[%s] modified\n", fileName);
+    if (htwatch.update_handler != NULL) {
+        htwatch.update_handler(fileName);
+    }
 }
 
 void ht_watch_handler_delete(struct kevent event) {
@@ -56,6 +61,9 @@ void ht_watch_handler_delete(struct kevent event) {
     }
     htDictRemove(htwatch.filedict, key, 0);
     printf("File[%s] delete\n", fileName);
+    if (htwatch.delete_handler != NULL) {
+        htwatch.delete_handler(fileName);
+    }
 }
 
 void ht_watch() {
