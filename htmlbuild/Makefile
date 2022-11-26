@@ -1,4 +1,4 @@
-objects = dict.o list.o util.o parse.o htwatch.o
+objects = dict.o list.o util.o parse.o htwatch.o config.o
 
 build-server:build-server.o $(objects)
 	gcc -o build-server build-server.o $(objects)
