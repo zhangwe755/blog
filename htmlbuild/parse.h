@@ -1,6 +1,7 @@
 
 #include "util.h"
 #include "list.h"
+#include "dict.h"
 
 #ifndef PARSE_FILE
 #define PARSE_FILE
@@ -43,7 +44,25 @@ typedef struct build_context {
     htlist *retList;
 } buildcontext;
 
+typedef struct parse_file_pool {
+    int inited;
+    /**
+     * childfile : rootfilelist
+     */
+    htdict *childfiledict;
+    /**
+     * rootfile: childfilelist;
+     */
+    htdict *rootfiledict;
+
+} parsefilepool;
+
+parsefilepool filepool;
+
 #endif
+
+htlist *parseGetRootFile(char *fileName);
+
 
 // 结构体不能返回空
 charindex * searchCmdIndex(char *srcLine);

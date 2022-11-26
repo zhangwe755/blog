@@ -4,6 +4,121 @@
 
 #include "parse.h"
 
+void parse_init_filepool() {
+    if (filepool.inited) {
+        return;
+    }
+    filepool.childfiledict = htDictCreate(1024);
+    filepool.rootfiledict = htDictCreate(1024);
+    filepool.inited = 1;
+}
+
+void registFile(char *file, char *rootFile) {
+    // 注册子文件字典
+    printf("start regist file: %s, rootfile:%s\n", file, rootFile);
+    htlist *rootlist = htDictGet(filepool.childfiledict, file);
+    if (rootlist == NULL) {
+        rootlist = htCreateList();
+        htDictPutNoFreeValue(filepool.childfiledict, file, rootlist);
+    }
+    htnode *rootFileNode = NULL;
+    htnode *tmp = rootlist->head;
+    while (tmp != NULL) {
+        if (strlen(tmp->data) != strlen(rootFile)) {
+            tmp = tmp->nextNode;
+            continue;
+        }
+        if(strcmp(rootFile, tmp->data) == 0) {
+            rootFileNode = tmp;
+            break;
+        }
+        tmp = tmp->nextNode;
+    }
+    if (rootFileNode == NULL) {
+        htAddNodeUseData(rootlist, rootFile);
+    }
+
+    printf("end regist root file!\n");
+
+    printf("start regist child file!\n");
+    htlist *childlist = htDictGet(filepool.rootfiledict, rootFile);
+    if (childlist == NULL) {
+        childlist = htCreateList();
+        printf("point1\n");
+        htDictPutNoFreeValue(filepool.rootfiledict, rootFile, childlist);
+    }
+    printf("point2, child list len:%d\n", childlist->len);
+    htnode *childFileNode = NULL;
+    tmp = childlist->head;
+    printf("point3, child list len:%d\n", childlist->len);
+    while (tmp != NULL) {
+        printf("point4, file:%s\n", file);
+        printf("point4, data:%s\n", tmp->data);
+        if (strlen(tmp->data) != strlen(file)) {
+            tmp = tmp->nextNode;
+            continue;
+        }
+        if(strcmp(file, tmp->data) == 0) {
+            childFileNode = tmp;
+            break;
+        }
+        tmp = tmp->nextNode;
+    }
+    printf("point5\n");
+    if (childFileNode == NULL) {
+        htAddNodeUseData(childlist, file);
+        printf("point6, child list len:%d\n", childlist->len);
+    }
+
+    htlist *childlist1 = htDictGet(filepool.rootfiledict, rootFile);
+
+    printf("point7, child list len:%d\n", childlist1->len);
+
+    printf("finish regist file: %s, rootfile:%s\n", file, rootFile);
+}
+
+void cleanFromRootFile(char *rootFile) {
+    htlist *childlist = htDictGet(filepool.rootfiledict, rootFile);
+    if (childlist == NULL) {
+        return;
+    }
+
+    htlist *rootlist = NULL; 
+    htnode *tmp = childlist->head;
+    htnode *roottmp = NULL;
+    while(tmp != NULL) {
+        // 子节点的root列表中删除该rootfile
+        char *childfile = tmp->data;
+        rootlist = htDictGet(filepool.childfiledict, childfile);
+        if (rootlist == NULL) {
+            tmp=tmp->nextNode;
+            continue;
+        }
+        roottmp = rootlist->head;
+        while(roottmp != NULL) {
+            if (strlen(roottmp->data) != strlen(rootFile)) {
+                tmp = tmp->nextNode;
+                continue;
+            }
+            if(strcmp(rootFile, roottmp->data) == 0) {
+                break;
+            }
+            roottmp = roottmp->nextNode;
+        }
+        if (roottmp != NULL) {
+            htRemoveNode(rootlist, roottmp);
+        }
+
+        tmp=tmp->nextNode;
+    }
+    htDictRemoveNoFreeValue(filepool.rootfiledict, rootFile);
+
+}
+
+htlist *parseGetRootFile(char *fileName) {
+    return htDictGet(filepool.childfiledict, fileName);
+}
+
 /**
  * 从命令中解析出包含的文件列表
  */
@@ -175,6 +290,9 @@ void buildDestFile(htlist *destList, char *destFile) {
 }
 
 void buildFile(buildcontext *dest) {
+
+    registFile(dest->cur_file, dest->src_file);
+
     char *line, *destLine;
     charindex *point;
     cmdentity *cmd;
@@ -335,6 +453,9 @@ char * destFile(htlist *prePathList, htlist *tmpPathList) {
 }
 
 void buildRootFile(char *rootFile) {
+    parse_init_filepool();
+    cleanFromRootFile(rootFile);
+
     buildcontext *dest = malloc(sizeof(buildcontext));
     dest->src_file = rootFile;
     dest->cur_file = rootFile;
@@ -355,7 +476,7 @@ void buildRootFile(char *rootFile) {
             // 编译每个文件
             printf("\n\n\nbuild partfile start: %s\n", tmpfilenode->data);
             buildcontext *muItemDest = malloc(sizeof(buildcontext));
-            muItemDest->src_file = tmpfilenode->data;
+            muItemDest->src_file = rootFile;
             muItemDest->cur_file = tmpfilenode->data;
             muItemDest->dest_file= NULL;
             muItemDest->retList= htCreateList();

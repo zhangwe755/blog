@@ -78,12 +78,13 @@ void htDictPutNoFreeValue(htdict *dict, char *key, void *value) {
 void * htDictGet(htdict *dict, char *key) {
     htlist *list = _getSoltList(dict, key);
     htnode *node = _getEntryNode(list, key);
-    printf("htDictGet get node\n");
+    printf("htDictGet get node, key:%s\n", key);
     if (node == NULL) {
         printf("htDictGet get node is null\n");
         return NULL;
     }
     htdictentry *entry = node->data;
+    printf("htDictGet get node, key:%s\n", entry->key);
     return entry->value;
 }
 
