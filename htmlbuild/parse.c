@@ -10,7 +10,15 @@ void parse_init_filepool() {
     }
     filepool.childfiledict = htDictCreate(1024);
     filepool.rootfiledict = htDictCreate(1024);
+    filepool.rootfilelist = htCreateList();
     filepool.inited = 1;
+}
+
+void registRootFile(char *rootFile) {
+    htlist *childlist = htDictGet(filepool.rootfiledict, rootFile);
+    if (childlist == NULL) {
+        htAddNodeUseData(filepool.rootfilelist, rootFile);
+    }
 }
 
 void registFile(char *file, char *rootFile) {
@@ -112,7 +120,20 @@ void cleanFromRootFile(char *rootFile) {
         tmp=tmp->nextNode;
     }
     htDictRemoveNoFreeValue(filepool.rootfiledict, rootFile);
-
+    roottmp = filepool.rootfilelist->head;
+    while(roottmp != NULL) {
+        if (strlen(roottmp->data) != strlen(rootFile)) {
+            tmp = tmp->nextNode;
+            continue;
+        }
+        if(strcmp(rootFile, roottmp->data) == 0) {
+            break;
+        }
+        roottmp = roottmp->nextNode;
+    }
+    if (roottmp != NULL) {
+        htRemoveNode(filepool.rootfilelist, roottmp);
+    }
 }
 
 htlist *parseGetRootFile(char *fileName) {
@@ -461,6 +482,7 @@ void buildRootFile(char *rootFile) {
     dest->cur_file = rootFile;
     dest->dest_file= NULL;
     dest->retList= htCreateList();
+    registRootFile(rootFile);
     buildFile(dest);
 
     htlist *tmpPathList = htCreateList();

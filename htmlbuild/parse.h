@@ -55,6 +55,11 @@ typedef struct parse_file_pool {
      */
     htdict *rootfiledict;
 
+    /**
+     * 所有rootfile，list
+     */
+    htlist *rootfilelist;
+
 } parsefilepool;
 
 parsefilepool filepool;

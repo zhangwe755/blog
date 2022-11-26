@@ -32,12 +32,19 @@ void te_update(char *fileName) {
 }
 
 int main() {
-    char *rootFile = "/Users/apple/soft/blog/templete/src/rootdir/index.btm";
-    buildRootFile(rootFile);
+    // 解析所有配置
+    
 
     ht_watch_init();
     htwatch.update_handler =  te_update;
+
+    // 遍历根目录,所有根文件先编译
+    char *rootFile = "/Users/apple/soft/blog/templete/src/rootdir/index.btm";
+    buildRootFile(rootFile);
+
+    // 遍历所有子文件监听这些文件
     ht_watch_join(rootFile);
+
     ht_watch();
 
 }
