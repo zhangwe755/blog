@@ -30,6 +30,14 @@ void ht_watch_init() {
     htwatch.delete_handler = NULL;
 }
 
+int ht_watch_getfd(char *fileName) {
+    int *fd =  htDictGet(htwatch.fddict, fileName);
+    if (fd == NULL) {
+        return -1;
+    }
+    return *fd;
+}
+
 void ht_watch_join(char *fileName) {
     long fd = open(fileName, O_RDONLY);
     if (fd == -1) {
@@ -37,6 +45,7 @@ void ht_watch_join(char *fileName) {
         return;
     }
     htDictPutNoFreeValue(htwatch.filedict, ht_watch_fd(fd), fileName);
+    htDictPutNoFreeValue(htwatch.fddict, fileName, &fd);
     EV_SET(&(htwatch.tmpEvent), fd, EVFILT_VNODE, EV_ADD | EV_ENABLE | EV_CLEAR, NOTE_DELETE | NOTE_EXTEND | NOTE_RENAME | NOTE_WRITE | NOTE_ATTRIB | NOTE_LINK | NOTE_REVOKE, 0, 0);
     kevent(htwatch.kq, &(htwatch.tmpEvent), 1, NULL, 0, NULL);
 }    
@@ -60,6 +69,7 @@ void ht_watch_handler_delete(struct kevent event) {
         return;
     }
     htDictRemove(htwatch.filedict, key, 0);
+    htDictRemove(htwatch.fddict, fileName, 0);
     printf("File[%s] delete\n", fileName);
     if (htwatch.delete_handler != NULL) {
         htwatch.delete_handler(fileName);
