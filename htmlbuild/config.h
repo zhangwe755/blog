@@ -1,16 +1,22 @@
+#include "dict.h"
 
 #ifndef HT_CONFIG
 #define HT_CONFIG
 
-typedef struct ht_config {
-
+typedef struct ht_config_entity {
+    int inited;
+    char *config_file;
     char *root_dir;
     char *dest_dir;
+    htdict *argdict;
 
-} htconfig;
+} htconfigentity;
 
-htconfig config;
+htconfigentity htconfig;
 
 #endif
+
+void ht_config_init(int argc, char **argv);
+char *ht_config_get(char *key);
 
 

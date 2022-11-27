@@ -2,6 +2,7 @@
 
 #include "htwatch.h"
 #include "parse.h"
+#include "config.h"
 
 void te_update(char *fileName) {
     printf("te update %s\n", fileName);
@@ -31,9 +32,9 @@ void te_update(char *fileName) {
     }
 }
 
-int main() {
+int mainx(int argc, char **argv) {
     // 解析所有配置
-    
+     
 
     ht_watch_init();
     htwatch.update_handler =  te_update;
@@ -46,6 +47,16 @@ int main() {
     ht_watch_join(rootFile);
 
     ht_watch();
-
+    return 0;
 }
+
+int main(int argc, char **argv) {
+    char *arguv[] = {"root_dir=/hello/info1", "dest_dir=/hello/info2", "ddd=/hello/info3"};
+    ht_config_init(3, arguv);
+    char *value = ht_config_get("root_dir");
+    printf("config value ==>%s\n", value);
+    char *value1 = ht_config_get("kkkk");
+    printf("config value1==>%s\n", value1);
+    return 0;
+} 
 
