@@ -104,5 +104,8 @@ void ht_config_init(int argc, char **argv) {
     }
     config_arg_init(argc, argv);
     config_file_init();
+
+    // 快捷字段设置
+    htconfig.root_dir = ht_config_get("root_dir");
 }
 

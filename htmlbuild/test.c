@@ -32,7 +32,7 @@ void te_update(char *fileName) {
     }
 }
 
-int mainx(int argc, char **argv) {
+int main_main(int argc, char **argv) {
     // 解析所有配置
      
 
@@ -50,13 +50,15 @@ int mainx(int argc, char **argv) {
     return 0;
 }
 
-int main(int argc, char **argv) {
-    char *arguv[] = {"root_dir=/hello/info1", "dest_dir=/hello/info2", "ddd=/hello/info3"};
-    ht_config_init(3, arguv);
+int main_config(int argc, char **argv) {
+    char *arguv[] = {"root_dir=/hello/info1","config_file=/Users/apple/soft/blog/templete/src/configfile", "dest_dir=/hello/info2", "ddd=/hello/info3"};
+    ht_config_init(4, arguv);
     char *value = ht_config_get("root_dir");
     printf("config value ==>%s\n", value);
-    char *value1 = ht_config_get("kkkk");
-    printf("config value1==>%s\n", value1);
+    printf("config value1==>%s\n", htconfig.root_dir);
     return 0;
 } 
 
+int main() {
+    return 0;
+}
