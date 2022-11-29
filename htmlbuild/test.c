@@ -60,5 +60,9 @@ int main_config(int argc, char **argv) {
 } 
 
 int main() {
+    char *path= "/Users/apple/soft/blog/templete/src";
+    ht_watch_init();
+    ht_watch_join(path);
+    ht_watch();
     return 0;
 }

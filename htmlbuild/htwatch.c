@@ -60,9 +60,11 @@ void ht_watch_handler_edit(struct kevent event) {
 }
 
 void ht_watch_handler_delete(struct kevent event) {
+    printf("flags:%u , %d, %d\n", event.fflags, EV_ADD, EV_DELETE);
     char *key = ht_watch_fd(event.ident);
     char *fileName = (char *)htDictGet(htwatch.filedict, key);
     if (isFile(fileName)) {
+        // 修改文件, 大部分编辑器修改文件是删除替换操作
         ht_watch_join(fileName);
         ht_watch_handler_edit(event);
         htDictRemove(htwatch.filedict, key, 0);
