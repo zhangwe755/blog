@@ -8,7 +8,6 @@
 
 typedef struct ht_watch_event {
     int old;
-    int exist;
     char *dirpath;
 } htwatchevent;
 

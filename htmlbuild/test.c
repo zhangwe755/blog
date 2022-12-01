@@ -5,6 +5,10 @@
 #include "config.h"
 #include "util.h"
 
+void test_update(char *fileName) {
+    printf("update file:%s\n", fileName);
+}
+
 void te_update(char *fileName) {
     printf("te update %s\n", fileName);
     htlist *rootFileList = parseGetRootFile(fileName);
@@ -33,16 +37,15 @@ void te_update(char *fileName) {
     }
 }
 
-int main_main(int argc, char **argv) {
+int main(int argc, char **argv) {
     // 解析所有配置
      
 
     ht_watch_init();
-    htwatch.update_handler =  te_update;
+    htwatch.update_handler =  test_update;
 
     // 遍历根目录,所有根文件先编译
-    char *rootFile = "/Users/apple/soft/blog/templete/src/rootdir/index.btm";
-    buildRootFile(rootFile);
+    char *rootFile = "/Users/apple/soft/blog/templete/src";
 
     // 遍历所有子文件监听这些文件
     ht_watch_join(rootFile);
@@ -70,10 +73,11 @@ int main_w() {
     return 0;
 }
 
-int main() {
-    char *path= "/Users/apple/soft/blog/templete/src";
+int main_child() {
+    char *path= "/Users/apple/soft/blog/templete/sr";
     char *path1= "/Users/apple/soft/blog/templete/src/configfile";
-    printf("file update time==>%ld\n", fileUpdateTime(path1));
-    printf("file update time==>%ld\n", fileUpdateTime(path));
+    //printf("file update time==>%ld\n", fileUpdateTime(path1));
+    //printf("file update time==>%ld\n", fileUpdateTime(path));
+    printf("ischild==>%d\n", isDirChild(path, path1));
     return 0;
 }

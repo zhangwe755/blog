@@ -19,12 +19,12 @@ void ht_watch_file_regist(long fp, char *fileName) {
     wf->file = fileName;
     wf->mtime = fileUpdateTime(fileName);
     wf->fp = fp;
-    htDictPutNoFreeValue(htwatch.filedict, ht_watch_fd(fd), wf);
+    htDictPutNoFreeValue(htwatch.filedict, ht_watch_fd(fp), wf);
     htDictPutNoFreeValue(htwatch.fddict, fileName, wf);
 }
 
 void ht_watch_file_unregist(htwatchfile *file) {
-    htDictRemove(htwatch.filedict, ht_watch_fd(file->fd),  0);
+    htDictRemove(htwatch.filedict, ht_watch_fd(file->fp),  0);
     htDictRemove(htwatch.fddict, file->file, 0);
     free(file);
 }
@@ -33,12 +33,24 @@ htwatchfile *ht_watch_file_from_fp(long fp) {
     return (htwatchfile *)htDictGet(htwatch.filedict, ht_watch_fd(fp));
 }
 
-int ht_watch_change_check_and_update(htwatchfile *file) {
+htwatchfile *ht_watch_file_from_file(char *file) {
+    return (htwatchfile *)htDictGet(htwatch.fddict, file);
+}
+
+int ht_watch_change_check(htwatchfile *file) {
     long nft = fileUpdateTime(file->file);
-    if (file->mtime == ntf) {
+    if (file->mtime == nft) {
         return 0;
     }
-    file->mtime = ntf;
+    return 1;
+}
+
+int ht_watch_change_check_and_update(htwatchfile *file) {
+    long nft = fileUpdateTime(file->file);
+    if (file->mtime == nft) {
+        return 0;
+    }
+    file->mtime = nft;
     return 1;
 }
 
@@ -67,6 +79,12 @@ int ht_watch_getfd(char *fileName) {
 }
 
 void ht_watch_join(char *fileName) {
+    htwatchfile *file = ht_watch_file_from_file(fileName);
+    if (file != NULL) {
+        printf("regist file is not null:%s\n", fileName);
+        return;
+    }
+    printf("regist file:%s\n", fileName);
     long fd = open(fileName, O_RDONLY);
     if (fd == -1) {
         printf("open file error, file:%s\n", fileName);
@@ -111,22 +129,92 @@ void ht_watch_handler_delete(struct kevent event) {
     }
 }
 
+void ht_watch_event_handler(htwatchevent wevents[], int count) {
+    htwatchevent hevent;
+    htwatchevent heventchild;
+    char *filePath;
+    for (int i=0;i<count;i++) {
+        hevent = wevents[i];
+        if (hevent.old) {
+            break;
+        }
+        if (!isDir(hevent.dirpath)) {
+            continue;
+        }
+        // 文件夹变更，子文件所有都会遍历，所以提前把单独的子文件去掉
+        for (int j=0;i<count;j++) {
+            heventchild = wevents[j];
+            if (heventchild.old) {
+                break;
+            }
+            if (i==j) {
+                continue;
+            }
+            if (heventchild.dirpath == NULL) {
+                continue;
+            }
+            if (isDirChild(hevent.dirpath, heventchild.dirpath)) {
+                heventchild.dirpath = NULL;
+            }
+        }
+
+    }
+    for (int i=0;i<count;i++) {
+        hevent = wevents[i];
+        if (hevent.old) {
+            break;
+        }
+        if (hevent.dirpath == NULL) {
+            continue;
+        }
+        if (isFile(hevent.dirpath)) {
+            ht_watch_join(hevent.dirpath);
+            if (htwatch.update_handler != NULL) {
+                htwatch.update_handler(hevent.dirpath);
+            }
+            continue;
+        }
+        if (isDir(hevent.dirpath)) {
+            htlist *childlist = htCreateList();
+            htdirchildren(childlist, hevent.dirpath);
+            htnode *tmpNode = childlist->head;
+            while(tmpNode != NULL) {
+                filePath = tmpNode->data;
+                if (isFile(filePath)) {
+                    htwatchfile *file = ht_watch_file_from_file(filePath);
+                    int update = 0;
+                    if (file == NULL) {
+                        update = 1;
+                    } else {
+                        update = ht_watch_change_check_and_update(file); 
+                    }
+                    if (update && htwatch.update_handler != NULL) {
+                        htwatch.update_handler(hevent.dirpath);
+                    }
+                }
+                ht_watch_join(filePath);
+            }
+        }
+    }
+}
+
+void ht_watch_event_init(htwatchevent wevents[], int count) {
+    for (int i=0;i<count;i++) {
+        wevents[i].old = 1;
+        wevents[i].dirpath = NULL;
+    }
+}
+
 void ht_watch() {
     struct kevent events[1024];
     struct kevent event;
-    int evcount;
-    int tmp_delete;
-    char *tmp_file;
-
     htwatchevent wevents[1024];
-    for (int i=0;i<1024;i++) {
-        wevents[i].old = 1;
-        wevents[i].dirpath = NULL;
-        wevents[i].exist = 0;
-    }
+    int evcount;
+    char *tmp_file;
 
     for (;;) {
         int wvindex = 0;
+        ht_watch_event_init(wevents, 1024);
         evcount = kevent(htwatch.kq, NULL, 0, events, 1024, NULL);
         if (evcount < 0) {
             printf("watch==> event while error!\n");
@@ -134,22 +222,30 @@ void ht_watch() {
         }
         printf("watch==> event count:%d\n", evcount);
         for (int i=0; i<evcount; i++) {
-            tmp_delete = 0;
             event = events[i];
             htwatchfile *file = ht_watch_file_from_fp(event.ident);
             if (file == NULL) {
                 printf("watch :event.ident not regist");
                 continue;
             }
-            if (!ht_watch_change_check_and_update(file)) {
-                continue;
-            }
             tmp_file = file->file;
+            if (isDir(tmp_file)) {
+                if (!ht_watch_change_check_and_update(file)) {
+                    continue;
+                }
+            } else {
+                if (!ht_watch_change_check(file)) {
+                    continue;
+                }
+            }
             if (event.fflags & NOTE_DELETE) {
                 ht_watch_unjoin(file);
             }
-            // 检查父目录是否已经存在
+            wevents[i].old = 0;
+            wevents[i].dirpath = tmp_file;
+            i++;
         }
+        ht_watch_event_handler(wevents, 1024);
         // 遍历文件夹确定增加文件,确定变更文件 执行update,delete,add, 也有可能没有变更
     }
 }

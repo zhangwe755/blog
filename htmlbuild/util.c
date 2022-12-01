@@ -88,7 +88,27 @@ char* getAbsolutePath(char *path) {
     return abPath;
 }
 
+int isDirChild(char *dirPath, char *childPath) {
+    int has_end = 0;
+    char *tmpdir = dirPath;
+    if (dirPath[strlen(dirPath)-1] == '/') {
+        tmpdir = htSubstr(dirPath, strlen(dirPath)-1);
+        has_end = 1;
+    }
+    char *tmpchild = htStrCpy(childPath);
+    tmpchild = dirname(tmpchild);
+    int result = strcmp(tmpdir, tmpchild) == 0 ? 1 : 0;
+    free(tmpchild);
+    if (has_end) {
+        free(tmpdir);
+    }
+    return result;
+}
+
 int isDir(char *file) {
+    if (file == NULL) {
+        return 0;
+    }
     struct stat buf;
     int result = stat(file, &buf);
     if (result != 0) {
@@ -99,6 +119,9 @@ int isDir(char *file) {
 }
 
 int isFile(char *file) {
+    if (file == NULL) {
+        return 0;
+    }
     struct stat buf;
     int result = stat(file, &buf);
     if (result != 0) {
@@ -216,7 +239,7 @@ htlist * htfilerecursive(htlist *filelist, char *basePath) {
     return htfilerecursivedetail(filelist, basePath, 1);
 }
 
-htlist * htdirchilds(htlist *filelist, char *basePath) {
+htlist * htdirchildren(htlist *filelist, char *basePath) {
     char path[10240];
     struct dirent *dp;
     char *tmpPath;
