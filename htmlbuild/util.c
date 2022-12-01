@@ -31,11 +31,9 @@ char * replacePartUseIndex(char *src, charindex point, char *part) {
 }
 
 char * htSubstr(char *src, int n) {
-    printf("src :%s, n:%d\n", src, n);
     char *dest = malloc(n+1);
     strncpy(dest, src, n);
     dest[n] = '\0';
-    printf("dest:%s\n", dest);
     return dest;
 }
 
@@ -253,6 +251,10 @@ htlist * htdirchildren(htlist *filelist, char *basePath) {
         if (strcmp(dp->d_name, ".") == 0 || strcmp(dp->d_name, "..") == 0) {
             continue;
         }
+        // .开头的文件不在处理范围内
+        if (dp->d_name[0] == '.') {
+            continue;
+        }
         // 将文件名和路径进行拼接形成一个完整路径
         strcpy(path, basePath);
         strcat(path, "/");
@@ -262,7 +264,6 @@ htlist * htdirchildren(htlist *filelist, char *basePath) {
         tmpPath = malloc(len+1);
         strcpy(tmpPath, path);
         tmpPath[len] = '\0';
-        printf("环获取文件夹:%s\n", tmpPath);
         htAddNodeUseData(filelist, tmpPath);
     }
     closedir(dir);

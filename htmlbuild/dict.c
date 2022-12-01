@@ -15,19 +15,15 @@ long _hashCode(char *hashStr) {
 
 htlist * _getSoltList(htdict *dict, char *key) {
     long hashCode=_hashCode(key);
-    printf("hashCode %ld\n", hashCode);
     int solt = hashCode % dict->soltCount;
-    printf("solt %d\n", solt);
     return dict->solts[solt];
 }
 
 htnode * _getEntryNode(htlist *entryList, char *key) {
     htnode *entryNode = NULL;
     htnode *tmpentryNode = entryList->head;
-    printf("_getEntryNode len:%d\n", entryList->len);
     for (int i=0;i<entryList->len;i++) {
         htdictentry *entry = tmpentryNode->data;
-        printf("_getEntryNode entry.key:%s, entry.value:%s\n", entry->key, entry->value);
         if(strcmp(entry->key, key) == 0) {
             entryNode = tmpentryNode;
             break;
@@ -50,20 +46,15 @@ htdict * htDictCreate(int soltCount) {
 
 void htDictPut(htdict *dict, char *key, void *value, int freeOldValue) {
     htlist *list = _getSoltList(dict, key);
-    printf("list len:%d\n", list->len);
     htnode *node = _getEntryNode(list, key);
-    printf("get node\n");
     if (node != NULL) {
-        printf("node not null\n");
         htdictentry *entry = node->data;
-        printf("entry value:%s\n", entry->value);
         if (freeOldValue) {
             free(entry->value);
         }
         entry->value = value;
         return;
     }
-    printf("no node\n");
 
     htdictentry *entry = (htdictentry *)malloc(sizeof(htdictentry));
     entry->key=key;
@@ -78,13 +69,10 @@ void htDictPutNoFreeValue(htdict *dict, char *key, void *value) {
 void * htDictGet(htdict *dict, char *key) {
     htlist *list = _getSoltList(dict, key);
     htnode *node = _getEntryNode(list, key);
-    printf("htDictGet get node, key:%s\n", key);
     if (node == NULL) {
-        printf("htDictGet get node is null\n");
         return NULL;
     }
     htdictentry *entry = node->data;
-    printf("htDictGet get node, key:%s\n", entry->key);
     return entry->value;
 }
 

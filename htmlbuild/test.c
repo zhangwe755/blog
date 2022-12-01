@@ -6,7 +6,7 @@
 #include "util.h"
 
 void test_update(char *fileName) {
-    printf("update file:%s\n", fileName);
+    printf("=====> update file:%s\n", fileName);
 }
 
 void te_update(char *fileName) {
@@ -40,6 +40,7 @@ void te_update(char *fileName) {
 int main(int argc, char **argv) {
     // 解析所有配置
      
+    printf("start main!\n");
 
     ht_watch_init();
     htwatch.update_handler =  test_update;
