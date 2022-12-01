@@ -122,7 +122,6 @@ void ht_watch() {
     for (int i=0;i<1024;i++) {
         wevents[i].old = 1;
         wevents[i].dirpath = NULL;
-        wevents[i].exist = 0;
     }
 
     for (;;) {
@@ -144,11 +143,11 @@ void ht_watch() {
             if (!ht_watch_change_check_and_update(file)) {
                 continue;
             }
-            tmp_file = file->file;
             if (event.fflags & NOTE_DELETE) {
-                ht_watch_unjoin(file);
+                tmp_delete = 1;
             }
-            // 检查父目录是否已经存在
+            if (!isExist(file->file)) {
+            }
         }
         // 遍历文件夹确定增加文件,确定变更文件 执行update,delete,add, 也有可能没有变更
     }

@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 #include <stdlib.h>
 #include <libgen.h>
 #include <sys/stat.h>
@@ -118,6 +119,15 @@ int isExist(char *file) {
     return (S_IFDIR & buf.st_mode) || (S_IFREG & buf.st_mode) ? 1 : 0;
 }
 
+long fileUpdateTime(char *file) {
+    struct stat buf;
+    int result = stat(file, &buf);
+    if (result != 0) {
+        return 0;
+    }
+    return buf.st_mtime;
+}
+
 void createDir(char *dirPath) {
     if (isExist(dirPath)){
         return;
@@ -158,8 +168,8 @@ FILE *deleteAndCreateFile(char *filePath) {
     return fp;
 }
 
-htlist * htfilerecursive(htlist *filelist, char *basePath) {
-	// 路径
+htlist * htfilerecursivedetail(htlist *filelist, char *basePath, int onlyfile) {
+    // 路径
     char path[10240];
     struct dirent *dp;
     char *tmpPath;
@@ -176,23 +186,63 @@ htlist * htfilerecursive(htlist *filelist, char *basePath) {
         htAddNodeUseData(filelist, tmpPath);
         return filelist;
     }
+    if (!onlyfile) {
+        len = strlen(basePath);
+        tmpPath = malloc(len+1);
+        strcpy(tmpPath, basePath);
+        tmpPath[len] = '\0';
+        printf("环获取文件夹:%s\n", tmpPath);
+        htAddNodeUseData(filelist, tmpPath);
+    }
     dir = opendir(basePath);
     while ((dp = readdir(dir)) != NULL)
     {
     	// 跳过 "." 和 ”..“
         if (strcmp(dp->d_name, ".") == 0 || strcmp(dp->d_name, "..") == 0) {
             continue;
-        	
         }
         // 将文件名和路径进行拼接形成一个完整路径
         strcpy(path, basePath);
         strcat(path, "/");
         strcat(path, dp->d_name);
 		// 递归遍历
-        htfilerecursive(filelist, path);
+        htfilerecursivedetail(filelist, path, onlyfile);
     }
     closedir(dir);
     return filelist;
 }
 
+htlist * htfilerecursive(htlist *filelist, char *basePath) {
+    return htfilerecursivedetail(filelist, basePath, 1);
+}
+
+htlist * htdirchilds(htlist *filelist, char *basePath) {
+    char path[10240];
+    struct dirent *dp;
+    char *tmpPath;
+    DIR *dir;
+    int len;
+
+    dir = opendir(basePath);
+    while ((dp = readdir(dir)) != NULL)
+    {
+    	// 跳过 "." 和 ”..“
+        if (strcmp(dp->d_name, ".") == 0 || strcmp(dp->d_name, "..") == 0) {
+            continue;
+        }
+        // 将文件名和路径进行拼接形成一个完整路径
+        strcpy(path, basePath);
+        strcat(path, "/");
+        strcat(path, dp->d_name);
+
+        len = strlen(path);
+        tmpPath = malloc(len+1);
+        strcpy(tmpPath, path);
+        tmpPath[len] = '\0';
+        printf("环获取文件夹:%s\n", tmpPath);
+        htAddNodeUseData(filelist, tmpPath);
+    }
+    closedir(dir);
+    return filelist;
+}
 

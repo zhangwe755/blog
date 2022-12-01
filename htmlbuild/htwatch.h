@@ -6,6 +6,18 @@
 #define HT_WATCH
 
 
+typedef struct ht_watch_event {
+    int old;
+    int exist;
+    char *dirpath;
+} htwatchevent;
+
+typedef struct ht_watch_file {
+    long mtime;
+    char *file;
+    long fp;
+} htwatchfile;
+
 typedef struct ht_watch_context {
     struct kevent tmpEvent;
     int kq;

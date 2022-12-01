@@ -3,6 +3,7 @@
 #include "htwatch.h"
 #include "parse.h"
 #include "config.h"
+#include "util.h"
 
 void te_update(char *fileName) {
     printf("te update %s\n", fileName);
@@ -59,10 +60,20 @@ int main_config(int argc, char **argv) {
     return 0;
 } 
 
-int main() {
+int main_w() {
     char *path= "/Users/apple/soft/blog/templete/src";
+    char *path1= "/Users/apple/soft/blog/templete/src/configfile";
     ht_watch_init();
     ht_watch_join(path);
+    ht_watch_join(path1);
     ht_watch();
+    return 0;
+}
+
+int main() {
+    char *path= "/Users/apple/soft/blog/templete/src";
+    char *path1= "/Users/apple/soft/blog/templete/src/configfile";
+    printf("file update time==>%ld\n", fileUpdateTime(path1));
+    printf("file update time==>%ld\n", fileUpdateTime(path));
     return 0;
 }

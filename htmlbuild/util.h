@@ -35,7 +35,9 @@ char * getAbsolutePath(char *path);
 int isDir(char *file);
 int isFile(char *file);
 int isExist(char *file);
+long fileUpdateTime(char *file);
 void createDir(char *dirPath);
 FILE *deleteAndCreateFile(char *filePath);
 htlist * htfilerecursive(htlist *filelist, char *basePath);
-
+htlist * htfilerecursivedetail(htlist *filelist, char *basePath, int onlyfile);
+htlist * htdirchilds(htlist *filelist, char *basePath);
