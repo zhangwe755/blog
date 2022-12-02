@@ -45,6 +45,13 @@ char * htStrCpy(char *src) {
     return dest;
 }
 
+char * htContactTwoStr(char *str1, char *str2) {
+    char *strList[2];
+    strList[0] = str1;
+    strList[1] = str2;
+    return htContact(strList, 2);
+}
+
 char * htContact(char* strList[], int length) {
     int len = 0;
     for (int i=0;i<length;i++) {
@@ -62,6 +69,13 @@ char * htContact(char* strList[], int length) {
 }
 
 ///////////// file function 
+
+char *currentDir() {
+    char buf[1024];
+    getcwd(buf, sizeof(buf));
+    return htStrCpy(buf);
+}
+
 char* getAbsolutePath(char *path) {
     char buf[1024];
     char *abPath;
