@@ -68,6 +68,8 @@ char * htContact(char* strList[], int length) {
     return dest;
 }
 
+
+
 ///////////// file function 
 
 char *currentDir() {
@@ -98,6 +100,24 @@ char* getAbsolutePath(char *path) {
     strcat(abPath, path + pathStart);
     printf("abPath : %s abPathSize:%lu, strlen:%lu\n", abPath, sizeof(abPath), strlen(abPath));
     return abPath;
+}
+
+/**
+ * child是否是all开头的字母
+ */
+int htDirIsParentDir(char *parentDir, char *childPath) {
+    int parentlen = strlen(parentDir);
+    int childlen = strlen(childPath);
+    if (childlen < parentlen) {
+        return 0;
+    }
+    if(childlen>parentlen && childPath[parentlen]!='/') {
+        return 0;
+    }
+    if(strncmp(parentDir, childPath, parentlen)==0) {
+        return 1;
+    }
+    return 0;
 }
 
 int isDirChild(char *dirPath, char *childPath) {

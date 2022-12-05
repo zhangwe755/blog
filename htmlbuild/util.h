@@ -38,6 +38,7 @@ int isDir(char *file);
 int isFile(char *file);
 int isExist(char *file);
 int isDirChild(char *dirPath, char *childPath);
+int htDirIsParentDir(char *parentDir, char *childPath);
 long fileUpdateTime(char *file);
 void createDir(char *dirPath);
 FILE *deleteAndCreateFile(char *filePath);

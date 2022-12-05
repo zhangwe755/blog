@@ -4,6 +4,10 @@
 #include "config.h"
 
 
+int isRootFile(char *file) {
+    return htDirIsParentDir(htconfig.root_dir, file);
+}
+
 void boot_update_file(char *fileName) {
     printf("boot update file:%s\n", fileName);
 }
