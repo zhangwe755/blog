@@ -2,6 +2,7 @@
 
 #include "htwatch.h"
 #include "config.h"
+#include "util.h"
 
 
 int isRootFile(char *file) {
