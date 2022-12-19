@@ -9,6 +9,39 @@
 char *_config_key_list[] = {"run_dir","watch_dir","root_dir", "dest_dir", "config_file"};
 int _config_key_list_len = sizeof(_config_key_list)/sizeof(char *);
 
+int is_blank(char itemChar) {
+    if (itemChar=='\n') {
+        return 1;
+    }
+    if (itemChar=='\r') {
+        return 1;
+    }
+    if (itemChar==' ') {
+        return 1;
+    }
+    if (itemChar==' ') {
+        return 1;
+    }
+    return 0;
+}
+
+void ht_trim (char *str) {
+    int len = strlen(str);
+    for (int i=0;i<len;i++) {
+        if(is_blank(str[0])) {
+            str = str+1;
+        }
+        break;
+    }
+    len = strlen(str);
+    for (int i=len-1;i>0;i--) {
+        if(is_blank(str[i])) {
+            str[i] = '\0';
+        }
+        break;
+    }
+}
+
 char *ht_config_get(char *key) {
     return htDictGet(htconfig.argdict, key);
 }
@@ -45,6 +78,9 @@ void config_load_config(char *argitem) {
     }
     strncpy(value, argitem+ecindex+1, len-ecindex-1);
     value[len-ecindex-1] = '\0';
+    ht_trim(key);
+    ht_trim(value);
+    
     htDictPut(htconfig.argdict, key, value, 0);
 }
 
@@ -78,6 +114,8 @@ void config_file_init() {
     if (configfile == NULL) {
         return;
     }
+
+    htDictPut(htconfig.argdict, "config_file", configfile, 0);
     htconfig.config_file = configfile;
     FILE *fd = fopen(configfile, "r");
     if (!fd) {
@@ -105,7 +143,7 @@ void config_arg_init(int argc, char **argv) {
 void printConfig() {
     for (int i=0;i<_config_key_list_len;i++) {
         char *key = _config_key_list[i];
-        printf("=>config: %s:%s\n", key, ht_config_get("root_dir"));
+        printf("=>config: %s:%s\n", key, ht_config_get(key));
     }
 }
 

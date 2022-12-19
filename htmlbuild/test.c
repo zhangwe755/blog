@@ -37,7 +37,7 @@ void te_update(char *fileName) {
     }
 }
 
-int main(int argc, char **argv) {
+int main_watch(int argc, char **argv) {
     // 解析所有配置
      
     printf("start main!\n");
@@ -80,5 +80,11 @@ int main_child() {
     //printf("file update time==>%ld\n", fileUpdateTime(path1));
     //printf("file update time==>%ld\n", fileUpdateTime(path));
     printf("ischild==>%d\n", isDirChild(path, path1));
+    return 0;
+}
+
+int main() {
+    log_info("xiao ming tongxue:%s!", "hello 1");
+    log_error(" error xiao ming tongxue:%d, %d!", 12, 15);
     return 0;
 }

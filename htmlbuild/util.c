@@ -1,4 +1,5 @@
 #include <unistd.h>
+#include <stdarg.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -7,6 +8,7 @@
 #include <libgen.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <errno.h>
 
 
 #include "util.h"
@@ -82,12 +84,10 @@ char* getAbsolutePath(char *path) {
     char buf[1024];
     char *abPath;
     size_t pathStart = 0;
-    printf("===>path:%s\n", path);
     if (path[0] == '/') {
         abPath = malloc(strlen(path)+1);
         strcpy(abPath, path);
         abPath[strlen(path)] = '\0';
-        printf("==>abPath : %s abPathSize:%lu, strlen:%lu\n", abPath, sizeof(abPath), strlen(abPath));
         return abPath;
     }
     if (strlen(path)>2 && path[0] == '.' && path[1] == '/') {
@@ -98,7 +98,6 @@ char* getAbsolutePath(char *path) {
     strcpy(abPath, buf);
     strcat(abPath, "/");
     strcat(abPath, path + pathStart);
-    printf("abPath : %s abPathSize:%lu, strlen:%lu\n", abPath, sizeof(abPath), strlen(abPath));
     return abPath;
 }
 
@@ -146,7 +145,6 @@ int isDir(char *file) {
     if (result != 0) {
         return 0;
     }
-    // 需不需要释放内存
     return S_IFDIR & buf.st_mode;
 }
 
@@ -159,7 +157,6 @@ int isFile(char *file) {
     if (result != 0) {
         return 0;
     }
-    // 需不需要释放内存
     return S_IFREG & buf.st_mode;
 }
 
@@ -169,8 +166,6 @@ int isExist(char *file) {
     if (result != 0) {
         return 0;
     }
-    // 需不需要释放内存
-    printf("result : %d, mode: %d, %d, %d\n", result, buf.st_mode, S_IFDIR, S_IFREG);
     return (S_IFDIR & buf.st_mode) || (S_IFREG & buf.st_mode) ? 1 : 0;
 }
 
@@ -207,17 +202,12 @@ void createDir(char *dirPath) {
 }
 
 FILE *deleteAndCreateFile(char *filePath) {
-    printf("function deleteAndCreateFile:%s\n", filePath);
     if (isFile(filePath)) {
         remove(filePath);
     }
-    printf("function deleteAndCreateFile clear file:%s\n", filePath);
     char *src = malloc(strlen(filePath));
-    printf("function deleteAndCreateFile src file===>:%s\n", filePath);
     strcpy(src, filePath);
-    printf("function deleteAndCreateFile src file:%s\n", src);
     filePath = dirname(filePath);
-    printf("function deleteAndCreateFile filePath:%s\n", filePath);
     createDir(filePath);
     FILE *fp = fopen(src, "w");
     return fp;
@@ -237,7 +227,6 @@ htlist * htfilerecursivedetail(htlist *filelist, char *basePath, int onlyfile) {
         tmpPath = malloc(len+1);
         strcpy(tmpPath, basePath);
         tmpPath[len] = '\0';
-        printf("环获取文件:%s\n", tmpPath);
         htAddNodeUseData(filelist, tmpPath);
         return filelist;
     }
@@ -246,10 +235,12 @@ htlist * htfilerecursivedetail(htlist *filelist, char *basePath, int onlyfile) {
         tmpPath = malloc(len+1);
         strcpy(tmpPath, basePath);
         tmpPath[len] = '\0';
-        printf("环获取文件夹:%s\n", tmpPath);
         htAddNodeUseData(filelist, tmpPath);
     }
     dir = opendir(basePath);
+    if (dir == NULL) {
+        return filelist;
+    }
     while ((dp = readdir(dir)) != NULL)
     {
     	// 跳过 "." 和 ”..“
@@ -304,3 +295,22 @@ htlist * htdirchildren(htlist *filelist, char *basePath) {
     return filelist;
 }
 
+void log_info(const char *fmt, ...) {
+    va_list ap;
+    char msg[1024];
+
+    va_start(ap, fmt);
+    vsnprintf(msg, sizeof(msg), fmt, ap);
+    va_end(ap);
+    printf("[INFO] %s\n", msg);
+}
+
+void log_error(const char *fmt, ...) {
+    va_list ap;
+    char msg[1024];
+
+    va_start(ap, fmt);
+    vsnprintf(msg, sizeof(msg), fmt, ap);
+    va_end(ap);
+    printf("[ERROR] %s\n", msg);
+}

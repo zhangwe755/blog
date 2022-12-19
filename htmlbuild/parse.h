@@ -78,4 +78,5 @@ cmdentity * parseCmd(char *cmdStr);
 
 void appendDestLine(htlist *destList, char * destLine);
 
+void buildChildFile(char *childFile);
 void buildRootFile(char *rootFile);

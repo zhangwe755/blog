@@ -45,3 +45,6 @@ FILE *deleteAndCreateFile(char *filePath);
 htlist * htfilerecursive(htlist *filelist, char *basePath);
 htlist * htfilerecursivedetail(htlist *filelist, char *basePath, int onlyfile);
 htlist * htdirchildren(htlist *filelist, char *basePath);
+
+void log_info(const char *fmt, ...);
+void log_error(const char *fmt, ...);

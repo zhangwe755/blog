@@ -3,6 +3,8 @@
 #include "htwatch.h"
 #include "config.h"
 #include "util.h"
+#include "list.h"
+#include "parse.h"
 
 
 int isRootFile(char *file) {
@@ -10,7 +12,22 @@ int isRootFile(char *file) {
 }
 
 void boot_update_file(char *fileName) {
-    printf("boot update file:%s\n", fileName);
+    if (isRootFile(fileName)) {
+        buildRootFile(fileName);
+        return;
+    }
+    buildChildFile(fileName);
+}
+
+void boot_build_rootfile() {
+    log_info("start build root");
+    htlist *fileList = htCreateList();
+    htfilerecursivedetail(fileList, htconfig.watch_dir,1); 
+    htnode *tmpNode = fileList->head;
+    while(tmpNode != NULL) {
+        buildRootFile(tmpNode->data);
+        tmpNode = tmpNode->nextNode;
+    }
 }
 
 void boot_init(int argc, char **argv) {
@@ -18,14 +35,22 @@ void boot_init(int argc, char **argv) {
     // 加载配置
     ht_config_init(argc, argv);
 
+    boot_build_rootfile();
+
     ht_watch_init();
     htwatch.update_handler = boot_update_file;
 
-    // 遍历根目录,所有根文件先编译
-    char *rootFile = "/Users/apple/soft/blog/templete/src";
-
-    // 遍历所有子文件监听这些文件
-    ht_watch_join(rootFile);
+    printf("xonfig init\n");
+    htlist *fileList = htCreateList();
+    printf("xonfig init1:%s\n", htconfig.watch_dir);
+    htfilerecursivedetail(fileList, htconfig.watch_dir,0); 
+    printf("xonfig init2:%s\n", htconfig.watch_dir);
+    htnode *tmpNode = fileList->head;
+    while(tmpNode != NULL) {
+        printf("watch file:%s\n", tmpNode->data);
+        ht_watch_join(tmpNode->data);
+        tmpNode = tmpNode->nextNode;
+    }
 
     ht_watch();
     printf("close html builder!\n");

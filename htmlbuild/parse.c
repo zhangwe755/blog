@@ -23,7 +23,6 @@ void registRootFile(char *rootFile) {
 
 void registFile(char *file, char *rootFile) {
     // 注册子文件字典
-    printf("start regist file: %s, rootfile:%s\n", file, rootFile);
     htlist *rootlist = htDictGet(filepool.childfiledict, file);
     if (rootlist == NULL) {
         rootlist = htCreateList();
@@ -46,22 +45,14 @@ void registFile(char *file, char *rootFile) {
         htAddNodeUseData(rootlist, rootFile);
     }
 
-    printf("end regist root file!\n");
-
-    printf("start regist child file!\n");
     htlist *childlist = htDictGet(filepool.rootfiledict, rootFile);
     if (childlist == NULL) {
         childlist = htCreateList();
-        printf("point1\n");
         htDictPutNoFreeValue(filepool.rootfiledict, rootFile, childlist);
     }
-    printf("point2, child list len:%d\n", childlist->len);
     htnode *childFileNode = NULL;
     tmp = childlist->head;
-    printf("point3, child list len:%d\n", childlist->len);
     while (tmp != NULL) {
-        printf("point4, file:%s\n", file);
-        printf("point4, data:%s\n", tmp->data);
         if (strlen(tmp->data) != strlen(file)) {
             tmp = tmp->nextNode;
             continue;
@@ -72,17 +63,9 @@ void registFile(char *file, char *rootFile) {
         }
         tmp = tmp->nextNode;
     }
-    printf("point5\n");
     if (childFileNode == NULL) {
         htAddNodeUseData(childlist, file);
-        printf("point6, child list len:%d\n", childlist->len);
     }
-
-    htlist *childlist1 = htDictGet(filepool.rootfiledict, rootFile);
-
-    printf("point7, child list len:%d\n", childlist1->len);
-
-    printf("finish regist file: %s, rootfile:%s\n", file, rootFile);
 }
 
 void cleanFromRootFile(char *rootFile) {
@@ -148,15 +131,11 @@ void parseCmdStr(cmdentity *entity) {
     void *strret = entity->strret;
     char *cmd_src = entity->src_cmd;
     int cmdLen = strlen(cmd_src);
-    printf("cmd_src:%s\n", cmd_src);
 
     // 解析|分割字符
     int start = 7, nextstart = 7;
-    printf("==============>cmdType:%d, cmdtypepath:%d\n", cmdType, CMD_TYPE_PATH);
     if (cmdType & CMD_TYPE_PATH) {
-        printf("path\n");
         entity->strret = htSubstr(cmd_src+nextstart, cmdLen-1-nextstart);
-        printf("找path:%s\n", entity->strret);
         return;
     }
 
@@ -174,19 +153,15 @@ void parseCmdStr(cmdentity *entity) {
 
     char * abPath = NULL;
     char * ret = NULL;
-    printf("list:len:%d, srcItemList:%d\n",((htlist *)strret)->len, srcItemList->len);
     htnode *tmpNode = srcItemList->head;
     while(tmpNode != NULL) {
-        printf("node data:%s\n", tmpNode->data);
         abPath = getAbsolutePath(tmpNode->data);
         ret = strchr(tmpNode->data, '*');
         if (ret == NULL) {
             if (isFile(abPath)) {
                 htAddNodeUseData(strret, abPath);
             } else if(isDir(abPath)) {
-                printf("=========> start abPath:%s\n", abPath); 
                 htfilerecursive(strret, abPath);
-                printf("=========> end abPath:%s\n", abPath); 
             } else {
                 printf("解析命令:%s, 路径:%s, 不是文件也不是文件夹\n", cmd_src, abPath );
             }
@@ -196,7 +171,6 @@ void parseCmdStr(cmdentity *entity) {
         }
         tmpNode = tmpNode->nextNode;
     }
-    printf("list:len:%d\n",((htlist *)strret)->len);
 }
 
 /**
@@ -220,7 +194,6 @@ cmdentity * parseCmd(char *cmdStr) {
     entity->src_cmd = cmdStr;
     entity->cmd_type = CMD_TYPE_NONE;
     entity->strret = htCreateList();
-    printf("尝试解析命令:%s\n", cmdStr);
     if (strncmp("html", cmdStr + 2, (size_t)4) == 0) {
         entity->cmd_type = CMD_TYPE_HTML;
     } else if (strncmp("mark", cmdStr + 2, (size_t)4) == 0) {
@@ -231,14 +204,10 @@ cmdentity * parseCmd(char *cmdStr) {
         printf("未知的命令类型:%s\n", cmdStr);
     }
     parseCmdStr(entity);
-    printf("===>解析命令完成\n");
     if ( entity->cmd_type & CMD_TYPE_HTML 
             || entity->cmd_type & CMD_TYPE_MARK) {
-        printf("===>文件夹列表\n");
         htlist *filelist = (htlist *)(entity->strret);
-        printf("===>文件夹列表强制类型转换成, 文件数量:%d\n", filelist->len);
         if (filelist->len > 1) {
-            printf("===>cmd type mutl!\n");
             entity->cmd_type = entity->cmd_type | CMD_TYPE_MUTL;
         }
     }
@@ -273,26 +242,22 @@ charindex * searchCmdIndex(char *srcLine) {
     int len = strlen(srcLine);
     int pre = -1, incmd = 0;
     char tmp;
-    printf("输入行:%s, 长度:%d\n", srcLine, len);
     for (int i=0; i<len; i++) {
         tmp = srcLine[i];
         if (pre>=0 && incmd) {
             if (tmp == '}') {
-                printf("找到命令中\n");
                 point->start = pre;
                 point->end = i;
                 return point;
             }
         } else if(pre>=0 && !incmd) {
             if (tmp == '{') {
-                printf("命令中\n");
                 incmd = 1;
             } else {
                 pre = -1;
             }
         } else {
             if (tmp == '@') {
-                printf("找到pre\n");
                 pre = i;
             }
         }
@@ -325,18 +290,14 @@ void buildFile(buildcontext *dest) {
     do {
         line = fgets(line, 1024*100, fp);
         if (line == NULL) {
-            printf("文件夹结束:%s\n", dest->cur_file);
             break;
         }
-        printf("开始解析行:%s\n", line);
         destLine = htStrCpy(line);
-        printf("原始数据复制:%s\n", destLine);
             
         // 解析文件，如果没有命令就直接写到临时文件
         point = searchCmdIndex(destLine);
         if (point == NULL) {
             // 原始字符串
-            printf("无命令行, 原始数:%s\n",destLine);
             appendDestLine(dest->retList, destLine);
             continue;
         }
@@ -348,11 +309,9 @@ void buildFile(buildcontext *dest) {
         }
 
         char *pre = htSubstr(destLine, point->start);
-        printf("=================>pre is:%s", pre);
         appendDestLine(dest->retList, pre);
         
         if ((cmd->cmd_type & CMD_TYPE_PATH) || (cmd->cmd_type & CMD_TYPE_MUTL)) {
-            printf("==============> $$$$$$$$$$cmd type!\n");
             appendDestCmd(dest->retList, cmd);
             appendDestLine(dest->retList, destLine + point->end + 1);
             continue;
@@ -367,9 +326,7 @@ void buildFile(buildcontext *dest) {
 }
 
 void extraPath(htlist *pathList, buildcontext *dest) {
-    printf("extraPath:%s\n", dest->cur_file);
     htCleanList(pathList);
-    printf("extraPath:clean path liest\n");
 
     htnode *tmp = dest->retList->head;
     do {
@@ -377,13 +334,11 @@ void extraPath(htlist *pathList, buildcontext *dest) {
         if (line->line_type == LINE_TYPE_CMD) {
             cmdentity *entity = (cmdentity *)line->data;
             if (entity->cmd_type & CMD_TYPE_PATH) {
-                printf("extraPath:src cmd:%s\n", entity->src_cmd);
                 htAddNodeUseData(pathList, entity->strret);
             }
         }        
         tmp = tmp->nextNode;
     } while(tmp != NULL);
-    printf("extraPath:stop\n");
 }
 
 cmdentity * extramutl(buildcontext *dest) {
@@ -416,13 +371,11 @@ void writeLine(FILE *fp, buildcontext *dest) {
         if ( line->line_type == LINE_TYPE_HTML) {
             // 写数据
             htwrite(line->data ,fp);
-            printf("html 类型行数据:%s\n", line->data);
         } else if (line->line_type == LINE_TYPE_CMD) {
             cmdentity *entity = (cmdentity *)line->data;
             if (!(entity->cmd_type & CMD_TYPE_PATH)) {
                 htwrite(entity->src_cmd ,fp);
             }
-            printf("cmd 类型行数据, 原始命令:%s\n", entity->src_cmd);
         } else {
             printf("未知的行数据类型\n");
         }
@@ -437,13 +390,11 @@ void writeMulLine(FILE *fp, buildcontext *dest, buildcontext *mulItemDest) {
         if ( line->line_type == LINE_TYPE_HTML) {
              // 写数据
              htwrite(line->data ,fp);
-             printf("html 类型行数据:%s\n", line->data);
         } else if (line->line_type == LINE_TYPE_CMD) {
              cmdentity *entity = (cmdentity *)line->data;
              if (entity->cmd_type & CMD_TYPE_MUTL) {
                  writeLine(fp, mulItemDest);
              }
-             printf("cmd 类型行数据, 原始命令:%s\n", entity->src_cmd);
         } else {
              printf("未知的行数据类型\n");
         }
@@ -496,7 +447,6 @@ void buildRootFile(char *rootFile) {
         htnode *tmpfilenode = fileList->head;
         while(tmpfilenode != NULL) {
             // 编译每个文件
-            printf("\n\n\nbuild partfile start: %s\n", tmpfilenode->data);
             buildcontext *muItemDest = malloc(sizeof(buildcontext));
             muItemDest->src_file = rootFile;
             muItemDest->cur_file = tmpfilenode->data;
@@ -506,17 +456,11 @@ void buildRootFile(char *rootFile) {
 
             extraPath(tmpPathList, muItemDest);
 
-            printf("start create destFilePath\n");
-
             dest->dest_file = destFile(prePathList, tmpPathList);
-            printf("end create destFilePath, dest_file:%s\n", dest->dest_file);
 
             FILE *fp = deleteAndCreateFile(dest->dest_file);
-            printf("finish create destFile\n");
             writeMulLine(fp, dest, muItemDest);
-            printf("finish write hestFile\n");
             fclose(fp);
-            printf("\n\n\nbuild partfile end: %s\n", tmpfilenode->data);
             tmpfilenode = tmpfilenode->nextNode;
         }
     } else {
@@ -527,4 +471,15 @@ void buildRootFile(char *rootFile) {
     }
 }
 
-
+void buildChildFile(char *childFile) {
+    printf("build child file:%s!\n", childFile);
+    htlist *rootlist = htDictGet(filepool.childfiledict, childFile);
+    if (rootlist == NULL) {
+        return;
+    }
+    htnode *tmpNode = rootlist->head;
+    while (tmpNode != NULL) {
+        buildRootFile(tmpNode->data);
+        tmpNode = tmpNode->nextNode;
+    }
+}
