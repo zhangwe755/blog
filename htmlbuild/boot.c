@@ -22,7 +22,7 @@ void boot_update_file(char *fileName) {
 void boot_build_rootfile() {
     log_info("start build root");
     htlist *fileList = htCreateList();
-    htfilerecursivedetail(fileList, htconfig.watch_dir,1); 
+    htfilerecursivedetail(fileList, htconfig.root_dir,1); 
     htnode *tmpNode = fileList->head;
     while(tmpNode != NULL) {
         buildRootFile(tmpNode->data);

@@ -1,8 +1,9 @@
+@{path|partdir}
 <html>
 <head>
 </head>
 <body>
 <h1>zzhengwei</h1>
-ffffffrr#fff#ff#sos@{html:/Users/haixue/Documents/workspace/blog/templete/src/partdir}x
+ffffffrr#fff#ff#sos@{html|partdir}x
 </body>
 </html>

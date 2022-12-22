@@ -6,7 +6,7 @@
 #include "dict.h"
 #include "util.h"
 
-char *_config_key_list[] = {"run_dir","watch_dir","root_dir", "dest_dir", "config_file"};
+char *_config_key_list[] = {"run_dir","src_dir","watch_dir","root_dir", "dest_dir", "config_file"};
 int _config_key_list_len = sizeof(_config_key_list)/sizeof(char *);
 
 int is_blank(char itemChar) {
@@ -165,6 +165,7 @@ void ht_config_init(int argc, char **argv) {
     htconfig.root_dir = ht_config_get("root_dir");
     htconfig.dest_dir = ht_config_get("dest_dir");
     htconfig.watch_dir = ht_config_get("watch_dir");
+    htconfig.src_dir = ht_config_get("src_dir");
     printConfig();
     log_info("=>config init finish!");
 }

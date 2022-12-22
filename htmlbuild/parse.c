@@ -3,6 +3,43 @@
 #include <string.h>
 
 #include "parse.h"
+#include "config.h"
+
+/**
+ * 生成目标文件
+ */
+char * destFile(htlist *prePathList, htlist *tmpPathList) {
+    int len = prePathList->len + tmpPathList->len;
+    if (len <= 0) {
+        log_error("not set path!");
+        exit(1);
+    }
+    char * strList[len+1];
+    strList[0] = htconfig.dest_dir;
+    int i = 0;
+    htnode *tmp = prePathList->head;
+    while(tmp != NULL)  {
+        i++;
+        strList[i] = tmp->data;
+        tmp = tmp->nextNode;
+    }
+    tmp = tmpPathList->head;
+    while(tmp != NULL)  {
+        i++;
+        strList[i] = tmp->data;
+        tmp = tmp->nextNode;
+    }
+    return htContact(strList, i+1);
+}
+
+char *build_file_path(char *file) {
+    log_info("file:%s", file);
+    if (file[0] == '/') {
+        return file;
+    }
+    log_info("src_dir:%s, file:%s", htconfig.src_dir, file);
+    return htContactTwoStr(htconfig.src_dir, file);
+}
 
 void parse_init_filepool() {
     if (filepool.inited) {
@@ -133,6 +170,7 @@ void parseCmdStr(cmdentity *entity) {
     int cmdLen = strlen(cmd_src);
 
     // 解析|分割字符
+    log_info("cmd str:%s", cmd_src);
     int start = 7, nextstart = 7;
     if (cmdType & CMD_TYPE_PATH) {
         entity->strret = htSubstr(cmd_src+nextstart, cmdLen-1-nextstart);
@@ -155,7 +193,9 @@ void parseCmdStr(cmdentity *entity) {
     char * ret = NULL;
     htnode *tmpNode = srcItemList->head;
     while(tmpNode != NULL) {
-        abPath = getAbsolutePath(tmpNode->data);
+        log_info("tmpdata:%s",tmpNode->data);
+        abPath = build_file_path(tmpNode->data);
+        log_info("abpath:%s",abPath);
         ret = strchr(tmpNode->data, '*');
         if (ret == NULL) {
             if (isFile(abPath)) {
@@ -163,7 +203,7 @@ void parseCmdStr(cmdentity *entity) {
             } else if(isDir(abPath)) {
                 htfilerecursive(strret, abPath);
             } else {
-                log_info("解析命令:%s, 路径:%s, 不是文件也不是文件夹\n", cmd_src, abPath );
+                log_info("解析命令:%s, 路径:%s, 不是文件也不是文件夹", cmd_src, abPath );
             }
         } else {
             // TODO 完善模糊匹配
@@ -280,7 +320,8 @@ void buildDestFile(htlist *destList, char *destFile) {
 }
 
 void buildFile(buildcontext *dest) {
-    log_info("build file:%s", dest->cur_file);
+    dest->cur_file = build_file_path(dest->cur_file);
+    log_info("=>buidFile file:%s", dest->cur_file);
     if (!isFile(dest->cur_file)) {
         log_error("=>buidFile error not find file:%s", dest->cur_file);
         return;
@@ -368,10 +409,8 @@ cmdentity * extramutl(buildcontext *dest) {
 }
 
 void htwrite(char *str, FILE *fp) {
-    log_info("htwrite str:%s", str);
     int len = strlen(str);
     for (int i=0;i<len;i++) {
-        log_info("htwrite str:%c, file:%d", str[i], fp);
         fputc(str[i], fp);
     }
 }
@@ -414,27 +453,7 @@ void writeMulLine(FILE *fp, buildcontext *dest, buildcontext *mulItemDest) {
     } while(tmp != NULL);
 }
 
-/**
- * 生成目标文件
- */
-char * destFile(htlist *prePathList, htlist *tmpPathList) {
-    int len = prePathList->len + tmpPathList->len;
-    char * strList[len];
-    int i = -1;
-    htnode *tmp = prePathList->head;
-    while(tmp != NULL)  {
-        i++;
-        strList[i] = tmp->data;
-        tmp = tmp->nextNode;
-    }
-    tmp = tmpPathList->head;
-    while(tmp != NULL)  {
-        i++;
-        strList[i] = tmp->data;
-        tmp = tmp->nextNode;
-    }
-    return htContact(strList, i+1);
-}
+
 
 void buildRootFile(char *rootFile) {
     // todo skip file
@@ -463,7 +482,7 @@ void buildRootFile(char *rootFile) {
             // 编译每个文件
             buildcontext *muItemDest = malloc(sizeof(buildcontext));
             muItemDest->src_file = rootFile;
-            muItemDest->cur_file = tmpfilenode->data;
+            muItemDest->cur_file = build_file_path(tmpfilenode->data);
             muItemDest->dest_file= NULL;
             muItemDest->retList= htCreateList();
             log_info("buildRootFile=>build child file:%s", muItemDest->cur_file);
@@ -482,6 +501,7 @@ void buildRootFile(char *rootFile) {
         }
     } else {
         dest->dest_file = destFile(prePathList, tmpPathList);
+        log_info("buildRootFile=>destFile:%s", dest->dest_file);
         FILE *fp = deleteAndCreateFile(dest->dest_file);
         writeLine(fp, dest);
         fclose(fp);

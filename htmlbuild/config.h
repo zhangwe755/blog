@@ -9,6 +9,7 @@ typedef struct ht_config_entity {
     char *config_file;
     char *watch_dir;
     char *root_dir;
+    char *src_dir;
     char *dest_dir;
     htdict *argdict;
 

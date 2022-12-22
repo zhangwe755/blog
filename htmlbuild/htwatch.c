@@ -80,6 +80,7 @@ int ht_watch_getfd(char *fileName) {
 }
 
 void ht_watch_join(char *fileName) {
+    log_info("join watch, file:%s", fileName);
     htwatchfile *file = ht_watch_file_from_file(fileName);
     if (file != NULL) {
         return;
@@ -179,6 +180,7 @@ void ht_watch_event_init(htwatchevent wevents[], int count) {
 }
 
 void ht_watch() {
+    log_info("start watching!.......");
     struct kevent events[1024];
     struct kevent event;
     htwatchevent wevents[1024];
