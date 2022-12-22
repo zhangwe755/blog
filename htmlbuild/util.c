@@ -33,6 +33,9 @@ char * replacePartUseIndex(char *src, charindex point, char *part) {
 }
 
 char * htSubstr(char *src, int n) {
+    if(n<=0) {
+        return NULL;
+    }
     char *dest = malloc(n+1);
     strncpy(dest, src, n);
     dest[n] = '\0';
@@ -196,7 +199,11 @@ void createDir(char *dirPath) {
         i++;
     }
     for (;i>=0;i--) {
-        mkdir(path[i], 0777);
+        int result = mkdir(path[i], 0777);
+        if (result != 0) {
+            log_error("mkdir fail, dir:%s, error:%s", path[i], strerror(errno));
+        }
+
         free(path[i]);
     }
 }
@@ -210,6 +217,10 @@ FILE *deleteAndCreateFile(char *filePath) {
     filePath = dirname(filePath);
     createDir(filePath);
     FILE *fp = fopen(src, "w");
+    if (fp == NULL) {
+        log_error("fopen file error! src:%s, error:%s", src, strerror(errno));
+        exit(1);
+    }
     return fp;
 }
 

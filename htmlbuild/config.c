@@ -92,7 +92,7 @@ char *config_get_config_file() {
     if (configfile == NULL) {
         // 设置默认配置文件
         configfile = htContactTwoStr(htconfig.run_dir , "/.config_file");
-        printf("=>use deafult config file:%s\n", configfile);
+        log_info("=>use deafult config file:%s", configfile);
     }
     if (configfile != NULL) {
         if (!isFile(configfile)) {
@@ -119,7 +119,7 @@ void config_file_init() {
     htconfig.config_file = configfile;
     FILE *fd = fopen(configfile, "r");
     if (!fd) {
-        printf("config file read fail! the config file path:%s\n", configfile);
+        log_error("config file read fail! the config file path:%s", configfile);
         return;
     }
     char *line = malloc(1024);
@@ -143,7 +143,7 @@ void config_arg_init(int argc, char **argv) {
 void printConfig() {
     for (int i=0;i<_config_key_list_len;i++) {
         char *key = _config_key_list[i];
-        printf("=>config: %s:%s\n", key, ht_config_get(key));
+        log_info("=>config: %s:%s", key, ht_config_get(key));
     }
 }
 
@@ -151,7 +151,7 @@ void ht_config_init(int argc, char **argv) {
     if (htconfig.inited) {
         return;
     }
-    printf("=>config init start!\n");
+    log_info("=>config init start!");
     htconfig.argdict = htDictCreate(32);
     htconfig.config_file = NULL;
     htconfig.root_dir = NULL;
@@ -166,6 +166,6 @@ void ht_config_init(int argc, char **argv) {
     htconfig.dest_dir = ht_config_get("dest_dir");
     htconfig.watch_dir = ht_config_get("watch_dir");
     printConfig();
-    printf("=>config init finish!\n");
+    log_info("=>config init finish!");
 }
 

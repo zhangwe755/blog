@@ -28,10 +28,11 @@ void boot_build_rootfile() {
         buildRootFile(tmpNode->data);
         tmpNode = tmpNode->nextNode;
     }
+    log_info("end build root");
 }
 
 void boot_init(int argc, char **argv) {
-    printf("start html builder!\n");
+    log_info("start html builder!");
     // 加载配置
     ht_config_init(argc, argv);
 
@@ -40,18 +41,14 @@ void boot_init(int argc, char **argv) {
     ht_watch_init();
     htwatch.update_handler = boot_update_file;
 
-    printf("xonfig init\n");
     htlist *fileList = htCreateList();
-    printf("xonfig init1:%s\n", htconfig.watch_dir);
     htfilerecursivedetail(fileList, htconfig.watch_dir,0); 
-    printf("xonfig init2:%s\n", htconfig.watch_dir);
     htnode *tmpNode = fileList->head;
     while(tmpNode != NULL) {
-        printf("watch file:%s\n", tmpNode->data);
         ht_watch_join(tmpNode->data);
         tmpNode = tmpNode->nextNode;
     }
 
     ht_watch();
-    printf("close html builder!\n");
+    log_info("close html builder!");
 }
