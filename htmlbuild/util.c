@@ -14,6 +14,7 @@
 #include "util.h"
 #include "list.h"
 
+
 // start end 下标都会被替换
 char * replacePart(char *src, int start, int end, char *part) {
     char *dest = malloc(strlen(src) + strlen(part) + end - start);
@@ -172,6 +173,33 @@ int isExist(char *file) {
     return (S_IFDIR & buf.st_mode) || (S_IFREG & buf.st_mode) ? 1 : 0;
 }
 
+int getFileSize(char *file) {
+    if (file == NULL) {
+        return 0;
+    }
+    struct stat buf;
+    int result = stat(file, &buf);
+    if (result != 0) {
+        return 0;
+    }
+    return buf.st_size;
+}
+
+char *ht_read_file(char *file) {
+    int size = getFileSize(file);
+    if (size == 0) {
+        return "";
+    }
+
+    log_debug("file size:%d", size);
+    char *file_content = (char *)malloc(size);
+    FILE *fp = fopen(file, "r");
+    fread(file_content, size, size, fp);
+    fclose(fp);
+    log_debug("file content:%s", file_content);
+    return file_content;
+}
+
 long fileUpdateTime(char *file) {
     struct stat buf;
     int result = stat(file, &buf);
@@ -306,6 +334,16 @@ htlist * htdirchildren(htlist *filelist, char *basePath) {
     return filelist;
 }
 
+void open_debug() {
+    extern int ht_log_debug_flag;
+    ht_log_debug_flag = DEBUG_OPEN;
+}
+
+void close_debug() {
+    extern int ht_log_debug_flag;
+    ht_log_debug_flag = DEBUG_CLOSE;
+}
+
 void log_info(const char *fmt, ...) {
     va_list ap;
     char msg[1024];
@@ -314,6 +352,20 @@ void log_info(const char *fmt, ...) {
     vsnprintf(msg, sizeof(msg), fmt, ap);
     va_end(ap);
     printf("[INFO] %s\n", msg);
+}
+
+void log_debug(const char *fmt, ...) {
+    extern int ht_log_debug_flag;
+    if (ht_log_debug_flag == DEBUG_CLOSE) {
+        return;
+    }
+    va_list ap;
+    char msg[1024];
+
+    va_start(ap, fmt);
+    vsnprintf(msg, sizeof(msg), fmt, ap);
+    va_end(ap);
+    printf("[DEBUG] %s\n", msg);
 }
 
 void log_error(const char *fmt, ...) {

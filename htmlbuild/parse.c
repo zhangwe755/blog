@@ -33,11 +33,11 @@ char * destFile(htlist *prePathList, htlist *tmpPathList) {
 }
 
 char *build_file_path(char *file) {
-    log_info("file:%s", file);
+    log_debug("build_file_path==>file:%s", file);
     if (file[0] == '/') {
         return file;
     }
-    log_info("src_dir:%s, file:%s", htconfig.src_dir, file);
+    log_debug("build_file_path==>src_dir:%s, file:%s", htconfig.src_dir, file);
     return htContactTwoStr(htconfig.src_dir, file);
 }
 
@@ -319,62 +319,7 @@ void buildDestFile(htlist *destList, char *destFile) {
     }
 }
 
-void buildFile(buildcontext *dest) {
-    dest->cur_file = build_file_path(dest->cur_file);
-    log_info("=>buidFile file:%s", dest->cur_file);
-    if (!isFile(dest->cur_file)) {
-        log_error("=>buidFile error not find file:%s", dest->cur_file);
-        return;
-    }
 
-    registFile(dest->cur_file, dest->src_file);
-
-    char *line, *destLine;
-    charindex *point;
-    cmdentity *cmd;
-    htlist *middleFileList;
-    char *oldCurFile = dest->cur_file;
-    int len;
-    line = malloc(1024*100);
-    FILE *fp = fopen(dest->cur_file, "r");
-    do {
-        line = fgets(line, 1024*100, fp);
-        if (line == NULL) {
-            break;
-        }
-        destLine = htStrCpy(line);
-            
-        // 解析文件，如果没有命令就直接写到临时文件
-        point = searchCmdIndex(destLine);
-        if (point == NULL) {
-            // 原始字符串
-            appendDestLine(dest->retList, destLine);
-            continue;
-        }
-        cmd = parseCmd(extraCmdStr(destLine, point));
-        if (cmd == NULL) {
-            // 原始字符串
-            appendDestLine(dest->retList, destLine);
-            continue;
-        }
-
-        char *pre = htSubstr(destLine, point->start);
-        appendDestLine(dest->retList, pre);
-        
-        if ((cmd->cmd_type & CMD_TYPE_PATH) || (cmd->cmd_type & CMD_TYPE_MUTL)) {
-            appendDestCmd(dest->retList, cmd);
-            appendDestLine(dest->retList, destLine + point->end + 1);
-            continue;
-        }
-        oldCurFile = dest->cur_file;
-        htlist *filelist = (htlist *)cmd->strret;
-        dest->cur_file = filelist->head->data;
-        buildFile(dest);
-        dest->cur_file = oldCurFile;
-        appendDestLine(dest->retList, destLine + point->end + 1);
-    } while(line != NULL);
-    log_info("end build file:%s", dest->cur_file);
-}
 
 void extraPath(htlist *pathList, buildcontext *dest) {
     htCleanList(pathList);
@@ -453,6 +398,62 @@ void writeMulLine(FILE *fp, buildcontext *dest, buildcontext *mulItemDest) {
     } while(tmp != NULL);
 }
 
+void buildFile(buildcontext *dest) {
+    dest->cur_file = build_file_path(dest->cur_file);
+    log_info("=>buidFile file:%s", dest->cur_file);
+    if (!isFile(dest->cur_file)) {
+        log_error("=>buidFile error not find file:%s", dest->cur_file);
+        return;
+    }
+
+    registFile(dest->cur_file, dest->src_file);
+
+    char *line, *destLine;
+    charindex *point;
+    cmdentity *cmd;
+    htlist *middleFileList;
+    char *oldCurFile = dest->cur_file;
+    int len;
+    line = malloc(1024*100);
+    FILE *fp = fopen(dest->cur_file, "r");
+    do {
+        line = fgets(line, 1024*100, fp);
+        if (line == NULL) {
+            break;
+        }
+        destLine = htStrCpy(line);
+            
+        // 解析文件，如果没有命令就直接写到临时文件
+        point = searchCmdIndex(destLine);
+        if (point == NULL) {
+            // 原始字符串
+            appendDestLine(dest->retList, destLine);
+            continue;
+        }
+        cmd = parseCmd(extraCmdStr(destLine, point));
+        if (cmd == NULL) {
+            // 原始字符串
+            appendDestLine(dest->retList, destLine);
+            continue;
+        }
+
+        char *pre = htSubstr(destLine, point->start);
+        appendDestLine(dest->retList, pre);
+        
+        if ((cmd->cmd_type & CMD_TYPE_PATH) || (cmd->cmd_type & CMD_TYPE_MUTL)) {
+            appendDestCmd(dest->retList, cmd);
+            appendDestLine(dest->retList, destLine + point->end + 1);
+            continue;
+        }
+        oldCurFile = dest->cur_file;
+        htlist *filelist = (htlist *)cmd->strret;
+        dest->cur_file = filelist->head->data;
+        buildFile(dest);
+        dest->cur_file = oldCurFile;
+        appendDestLine(dest->retList, destLine + point->end + 1);
+    } while(line != NULL);
+    log_info("end build file:%s", dest->cur_file);
+}
 
 
 void buildRootFile(char *rootFile) {

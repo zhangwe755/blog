@@ -41,6 +41,7 @@ typedef struct build_context {
     char *src_file;
     char *cur_file;
     char *dest_file;
+    // the contents of the list is char *
     htlist *retList;
 } buildcontext;
 
@@ -68,6 +69,7 @@ parsefilepool filepool;
 
 htlist *parseGetRootFile(char *fileName);
 
+void registFile(char *file, char *rootFile);
 
 // 结构体不能返回空
 charindex * searchCmdIndex(char *srcLine);

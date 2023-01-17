@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "list.h"
 
 #ifndef HT_UTIL
@@ -5,6 +7,11 @@
 
 #define IS_FILE 1
 #define IS_DIR 2
+
+#define DEBUG_CLOSE 0
+#define DEBUG_OPEN 1
+
+int ht_log_debug_flag;
 
 typedef struct ht_file {
     int type;
@@ -37,6 +44,8 @@ char * getAbsolutePath(char *path);
 int isDir(char *file);
 int isFile(char *file);
 int isExist(char *file);
+int getFileSize(char *file);
+char *ht_read_file(char *file);
 int isDirChild(char *dirPath, char *childPath);
 int htDirIsParentDir(char *parentDir, char *childPath);
 long fileUpdateTime(char *file);
@@ -46,5 +55,9 @@ htlist * htfilerecursive(htlist *filelist, char *basePath);
 htlist * htfilerecursivedetail(htlist *filelist, char *basePath, int onlyfile);
 htlist * htdirchildren(htlist *filelist, char *basePath);
 
+
+void open_debug(); 
+void close_debug();
 void log_info(const char *fmt, ...);
+void log_debug(const char *fmt, ...);
 void log_error(const char *fmt, ...);
