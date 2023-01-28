@@ -74,6 +74,10 @@ char * htContact(char* strList[], int length) {
     return dest;
 }
 
+void htFree(void *data) {
+    free(data);
+}
+
 
 
 ///////////// file function 
@@ -188,7 +192,7 @@ int getFileSize(char *file) {
 char *ht_read_file(char *file) {
     int size = getFileSize(file);
     if (size == 0) {
-        return "";
+        return NULL;
     }
 
     log_debug("file size:%d", size);

@@ -29,3 +29,4 @@ struct mark_item {
 }markitem;
 
 void build_mark(buildcontext *dest);
+char *build_mark_str(char *src);

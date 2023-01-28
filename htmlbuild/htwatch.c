@@ -190,7 +190,6 @@ void ht_watch() {
     int has_add = 0;
 
     for (;;) {
-        int wvindex = 0;
         ht_watch_event_init(wevents, 1024);
         evcount = kevent(htwatch.kq, NULL, 0, events, 1024, NULL);
         if (evcount < 0) {

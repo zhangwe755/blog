@@ -37,6 +37,7 @@ char * htSubstr(char *src, int n);
 char * htStrCpy(char *src);
 char * htContactTwoStr(char *str1, char *str2);
 char * htContact(char* strList[], int length);
+void htFree(void *data);
 
 // file fuction
 char *currentDir();

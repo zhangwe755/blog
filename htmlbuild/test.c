@@ -3,6 +3,7 @@
 
 #include "hello.h"
 #include "test_util.h"
+#include "test_mark.h"
 
 int main(int argc, char **argv) {
     log_info("argc:%d", argc);
@@ -22,6 +23,9 @@ int main(int argc, char **argv) {
     }
     if (strcmp(function_name, "test_ht_read_file") == 0) {
         test_ht_read_file();
+    }
+    if (strcmp(function_name, "test_build_mark_str") == 0) {
+        test_build_mark_str();
     }
 
     return 0;

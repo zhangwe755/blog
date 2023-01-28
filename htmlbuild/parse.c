@@ -228,9 +228,6 @@ void parseCmdStr(cmdentity *entity) {
  */
 cmdentity * parseCmd(char *cmdStr) {
     log_info("==>start parseCmd cmdStr:%s", cmdStr);
-    int len = strlen(cmdStr);
-    char tmp;
-    int charIndex = 0;
     cmdentity *entity = malloc(sizeof(cmdentity)); 
     entity->src_cmd = cmdStr;
     entity->cmd_type = CMD_TYPE_NONE;
@@ -411,9 +408,7 @@ void buildFile(buildcontext *dest) {
     char *line, *destLine;
     charindex *point;
     cmdentity *cmd;
-    htlist *middleFileList;
     char *oldCurFile = dest->cur_file;
-    int len;
     line = malloc(1024*100);
     FILE *fp = fopen(dest->cur_file, "r");
     do {
