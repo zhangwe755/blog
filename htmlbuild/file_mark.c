@@ -13,7 +13,7 @@ int same_char_num(htcharnode *indexNode) {
     int sNum = 1;
     char sChar = curNode->data;
     while(curNode->nextNode != NULL) {
-        if (curNode->data != sChar) {
+        if (curNode->nextNode->data != sChar) {
             break;
         }
         sNum++;
@@ -65,13 +65,11 @@ htcharnode* mark_add_str(htcharlist *list, char* str, htcharnode *startNode, int
     int curChar = 0;
     if (startNode == NULL) {
         ref = list->end;
-    } else if(startNode == list->head) {
+    } else {
         removeCount--;
         startNode->data = str[0];
         ref = startNode;
         curChar = 1;
-    } else {
-        ref = startNode->preNode;
     }
     log_debug("mark_add_str str:%s", str);
     log_debug("mark_add_str end node next:%s, removeCount:%d", list->end->nextNode, removeCount);
@@ -233,10 +231,11 @@ htcharnode* try_build_mark(htcharlist *list, htcharnode *indexNode) {
         if (codeEndNode != NULL) {
             char *pre = "<pre class=\"mk_code\">";
             char *end = "</pre>";
-            log_debug("pre codeEndNode:%c", codeEndNode->data);
+            log_debug("codeEndNode:%c", codeEndNode->data);
             mark_add_str(list, pre, indexNode, 3);
             mark_add_str(list, end, codeEndNode, 3);
-            return codeEndNode->nextNode->nextNode->nextNode;
+            log_debug("codeEndNode:%c", codeEndNode->data);
+            return codeEndNode->nextNode->nextNode->nextNode->nextNode->nextNode;
         }
     }
     if ((char)indexNode->data == '\n') {

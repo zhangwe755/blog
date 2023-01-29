@@ -91,8 +91,8 @@ void htRemoveNode(htlist *baseList, htnode *node) {
         node->preNode->nextNode = node->nextNode;
         node->nextNode->preNode = node->preNode;
     }
-    free(node);
     baseList->len--;
+    free(node);
 }
 
 void htDestoryList(htlist *baseList) {
@@ -103,7 +103,6 @@ void htDestoryList(htlist *baseList) {
         cur = cur->nextNode;
         free(killNode);
     }
-    free(baseList);
 }
 
 /********** char list *************/
