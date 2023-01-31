@@ -46,5 +46,7 @@ void htRemoveCharNode(htcharlist *baseList, htcharnode *node);
 void htCleanCharList(htcharlist *baseList);
 void htDestoryCharList(htcharlist *baseList);
 
+int htSimpleNodeLen(htcharnode *startNode, htcharnode *endNode);
+void htCharExtra(htcharlist *baseList, htcharnode *startNode, htcharnode *endNode);
 
 

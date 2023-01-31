@@ -8,6 +8,15 @@
 #include "util.h"
 #include "list.h"
 
+typedef struct mark_img_milestone {
+    htcharnode *textStart;
+    htcharnode *textEnd;
+    htcharnode *linkStart;
+    htcharnode *linkEnd;
+    htcharnode *styleStart;
+    htcharnode *styleEnd;
+} markimgmil;
+
 int same_char_num(htcharnode *indexNode) {
     htcharnode *curNode= indexNode;
     int sNum = 1;
@@ -21,6 +30,89 @@ int same_char_num(htcharnode *indexNode) {
     }
     return sNum;
 }
+
+int is_link(htcharnode *indexNode) {
+    // 特征数量, 超链接有3个特征'['开头,']'后面一个字符是'(', ')'符号结尾
+    int spe = 1;
+    htcharnode *curNode =  indexNode;
+    if (curNode->data != '[') {
+        return 0;
+    }
+    while(curNode != NULL 
+            && curNode->data != '\r'
+            && curNode->data != '\n') {
+        if (spe == 1 
+                && curNode->data == ']'
+                && curNode->nextNode != NULL
+                && curNode->nextNode->data == '(') {
+            spe = 2;
+        }
+        if (spe == 2 
+                && curNode->data == ')') {
+            spe = 3;
+            break;
+        }
+        curNode=curNode->nextNode;
+    }
+    if (spe == 3) {
+        return 1;
+    }
+    return 0;
+}
+
+int is_img(htcharnode *curNode) {
+    if (curNode->data != '!' || curNode->nextNode == NULL) {
+        return 0;
+    }
+    return is_link(curNode->nextNode);
+}
+
+void reset_img_mil(markimgmil mil, htcharnode *indexNode) {
+    mil.textStart = NULL;
+    mil.textEnd = NULL;
+    mil.linkStart = NULL;
+    mil.linkEnd = NULL;
+    mil.styleStart = NULL;
+    mil.styleEnd = NULL;
+    htcharnode *curNode =  indexNode;
+    while(curNode != NULL 
+            && curNode->data != '\r'
+            && curNode->data != '\n') {
+        if (curNode->data == '[' && mil.textStart == NULL) {
+            mil.textStart = curNode->nextNode;
+        }
+        if (curNode->data == ']' 
+                && curNode->nextNode != NULL
+                && curNode->nextNode->data == '(') {
+            mil.textEnd = curNode->preNode;
+        }
+        if (curNode->data == '(' 
+                && curNode->nextNode != NULL
+                && curNode->preNode->data == ']') {
+            mil.linkStart = curNode->nextNode;
+        }
+        if (curNode->data == ')' 
+                && mil.linkStart != NULL
+                && mil.linkEnd == NULL) {
+            mil.linkEnd = curNode->preNode;
+            if (curNode->nextNode != NULL
+                    && curNode->nextNode->data == '(') {
+                mil.styleStart = mil.linkEnd->nextNode->nextNode;
+            } else {
+                break;
+            }
+        }
+        if (curNode->data == ')' 
+                && mil.styleStart != NULL
+                && mil.styleEnd == NULL) {
+            mil.styleEnd = curNode->preNode;
+            break;
+        }
+        curNode=curNode->nextNode;
+    }
+}
+
+
 
 int is_new_line(htcharnode *curNode) {
     if ( curNode->preNode == NULL
@@ -95,6 +187,14 @@ htcharnode* mark_add_str(htcharlist *list, char* str, htcharnode *startNode, int
     }
     log_debug("mark_add_str add finish:%s", str);
     return ref->nextNode;
+}
+
+void mark_build_img(htcharlist *list, htcharnode *indexNode, char *str1, char *str2, char *str3, char*str4) {
+    if (indexNode->data == '!') {
+        mark_add_str(list, str1, indexNode, 2);
+
+    }
+
 }
 
 /**
@@ -238,11 +338,15 @@ htcharnode* try_build_mark(htcharlist *list, htcharnode *indexNode) {
             return codeEndNode->nextNode->nextNode->nextNode->nextNode->nextNode;
         }
     }
+    if (is_link(indexNode)) {
+        // 超链接
+        //markimgmil mil;
+        //reset_img_mil(mil, indexNode);
+    }
+    if (is_img(indexNode)) {
+        // 图片链接
+    }
     if ((char)indexNode->data == '\n') {
-    }
-    if ((char)indexNode->data == '(') {
-    }
-    if ((char)indexNode->data == '!') {
     }
     log_debug("build_mark_str indexNode:%s", indexNode);
     log_debug("build_mark_str indexNode-->:%c", indexNode->data);

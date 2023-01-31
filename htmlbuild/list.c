@@ -213,3 +213,45 @@ void htDestoryCharList(htcharlist *baseList) {
     }
     free(baseList);
 }
+
+int htSimpleNodeLen(htcharnode *startNode, htcharnode *endNode) {
+    htcharnode *curNode = startNode;
+    int len = 1;
+    while(curNode != endNode) {
+        curNode = curNode->nextNode;
+        if (curNode == NULL) {
+            log_error("endNode is not after startNode!");
+            exit(0);
+        }
+        len++;
+    }
+    return len;
+}
+
+/**
+ * 提取部分node包含在链表里面，提取出部分作为一个简易链表存在
+ */
+void htCharExtra(htcharlist *baseList, htcharnode *startNode, htcharnode *endNode) {
+    if (startNode == baseList->head) {
+        if (endNode == baseList->end) {
+            baseList->head = NULL;
+            baseList->end = NULL;
+        } else {
+            baseList->head=endNode->nextNode;
+            endNode->nextNode->preNode=NULL;
+        }
+    } else {
+        htcharnode *startPre = startNode->preNode;
+        if (endNode == baseList->end) {
+            startPre->nextNode = NULL;
+            baseList->end = startPre;
+        } else {
+            startPre->nextNode = endNode->nextNode;
+            endNode->nextNode->preNode = startPre;
+        }
+    }
+    startNode->preNode = NULL;
+    endNode->nextNode = NULL;
+    baseList->len = baseList->len - htSimpleNodeLen(startNode, endNode);
+}
+
