@@ -79,9 +79,7 @@ void reset_img_mil(markimgmil *mil, htcharnode *indexNode) {
             && curNode->data != '\r'
             && curNode->data != '\n') {
         if (curNode->data == '[' && mil->textStart == NULL) {
-            log_debug("start node!, cur node next:%s", curNode->nextNode);
             mil->textStart = curNode->nextNode;
-            log_debug("start node!, text start node next:%s", mil->textStart);
         }
         if (curNode->data == ']' 
                 && curNode->nextNode != NULL
@@ -365,10 +363,41 @@ htcharnode* try_build_mark(htcharlist *list, htcharnode *indexNode) {
         htAddSimpleListCharAfterRef(list, mil->textStart, mil->textEnd, curNode);
         curNode = mil->textEnd->nextNode;
         curNode = mark_add_str(list, end, curNode, 0);
+        free(mil);
         return curNode;
     }
     if (is_img(indexNode)) {
         // 图片链接
+        markimgmil *mil = malloc(sizeof(markimgmil));
+        reset_img_mil(mil, indexNode);
+        htCharExtra(list, mil->textStart, mil->textEnd);
+        htCharExtra(list, mil->linkStart, mil->linkEnd);
+        int removeCount = 4;
+        if(mil->styleEnd != NULL) {
+            removeCount = 6;
+            htCharExtra(list, mil->styleStart, mil->styleEnd);
+        }
+        char *pre = "<img src=\"";
+        char *mid = "\" alt=\"";
+        char *mid2 = "\" style=\" ";
+        char *end = "\" />";
+        htcharnode *curNode = indexNode;
+        curNode = mark_add_str(list, pre, curNode, removeCount);
+        // add link
+        htAddSimpleListCharAfterRef(list, mil->linkStart, mil->linkEnd, curNode);
+        curNode = mil->linkEnd->nextNode;
+        curNode = mark_add_str(list, mid, curNode, 0);
+        // add text
+        htAddSimpleListCharAfterRef(list, mil->textStart, mil->textEnd, curNode);
+        curNode = mil->textEnd->nextNode;
+        curNode = mark_add_str(list, mid2, curNode, 0);
+        if (mil->styleEnd != NULL) {
+            htAddSimpleListCharAfterRef(list, mil->styleStart, mil->styleEnd, curNode);
+            curNode = mil->styleEnd->nextNode;
+        }
+        curNode = mark_add_str(list, end, curNode, 0);
+        free(mil);
+        return curNode;
     }
     if ((char)indexNode->data == '\n') {
     }

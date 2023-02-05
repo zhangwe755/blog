@@ -46,6 +46,10 @@ int main(int argc, char **argv) {
         test_mark_link();
         return 0;
     }
+    if (strcmp(function_name, "test_mark_img") == 0) {
+        test_mark_img();
+        return 0;
+    }
     log_info("function name:%s, not find test", function_name);
     return 0;
 }
