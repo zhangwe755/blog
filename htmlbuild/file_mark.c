@@ -67,49 +67,52 @@ int is_img(htcharnode *curNode) {
     return is_link(curNode->nextNode);
 }
 
-void reset_img_mil(markimgmil mil, htcharnode *indexNode) {
-    mil.textStart = NULL;
-    mil.textEnd = NULL;
-    mil.linkStart = NULL;
-    mil.linkEnd = NULL;
-    mil.styleStart = NULL;
-    mil.styleEnd = NULL;
+void reset_img_mil(markimgmil *mil, htcharnode *indexNode) {
+    mil->textStart = NULL;
+    mil->textEnd = NULL;
+    mil->linkStart = NULL;
+    mil->linkEnd = NULL;
+    mil->styleStart = NULL;
+    mil->styleEnd = NULL;
     htcharnode *curNode =  indexNode;
     while(curNode != NULL 
             && curNode->data != '\r'
             && curNode->data != '\n') {
-        if (curNode->data == '[' && mil.textStart == NULL) {
-            mil.textStart = curNode->nextNode;
+        if (curNode->data == '[' && mil->textStart == NULL) {
+            log_debug("start node!, cur node next:%s", curNode->nextNode);
+            mil->textStart = curNode->nextNode;
+            log_debug("start node!, text start node next:%s", mil->textStart);
         }
         if (curNode->data == ']' 
                 && curNode->nextNode != NULL
                 && curNode->nextNode->data == '(') {
-            mil.textEnd = curNode->preNode;
+            mil->textEnd = curNode->preNode;
         }
         if (curNode->data == '(' 
                 && curNode->nextNode != NULL
                 && curNode->preNode->data == ']') {
-            mil.linkStart = curNode->nextNode;
+            mil->linkStart = curNode->nextNode;
         }
         if (curNode->data == ')' 
-                && mil.linkStart != NULL
-                && mil.linkEnd == NULL) {
-            mil.linkEnd = curNode->preNode;
+                && mil->linkStart != NULL
+                && mil->linkEnd == NULL) {
+            mil->linkEnd = curNode->preNode;
             if (curNode->nextNode != NULL
                     && curNode->nextNode->data == '(') {
-                mil.styleStart = mil.linkEnd->nextNode->nextNode;
+                mil->styleStart = mil->linkEnd->nextNode->nextNode;
             } else {
                 break;
             }
         }
         if (curNode->data == ')' 
-                && mil.styleStart != NULL
-                && mil.styleEnd == NULL) {
-            mil.styleEnd = curNode->preNode;
+                && mil->styleStart != NULL
+                && mil->styleEnd == NULL) {
+            mil->styleEnd = curNode->preNode;
             break;
         }
         curNode=curNode->nextNode;
     }
+    log_debug("start node!, text start node next:%s", mil->textStart);
 }
 
 
@@ -185,8 +188,8 @@ htcharnode* mark_add_str(htcharlist *list, char* str, htcharnode *startNode, int
         log_debug("mark_add_str ref next:%s", ref->nextNode);
         log_debug("\n");
     }
-    log_debug("mark_add_str add finish:%s", str);
-    return ref->nextNode;
+    log_debug("mark_add_str add finish:%s, ref:%c", str, ref->data);
+    return ref;
 }
 
 void mark_build_img(htcharlist *list, htcharnode *indexNode, char *str1, char *str2, char *str3, char*str4) {
@@ -340,8 +343,29 @@ htcharnode* try_build_mark(htcharlist *list, htcharnode *indexNode) {
     }
     if (is_link(indexNode)) {
         // 超链接
-        //markimgmil mil;
-        //reset_img_mil(mil, indexNode);
+        markimgmil *mil = malloc(sizeof(markimgmil));
+        reset_img_mil(mil, indexNode);
+        htCharExtra(list, mil->textStart, mil->textEnd);
+        htCharExtra(list, mil->linkStart, mil->linkEnd);
+        int removeCount = 4;
+        if(mil->styleEnd != NULL) {
+            removeCount = 6;
+            htCharExtra(list, mil->styleStart, mil->styleEnd);
+        }
+        char *pre = "<a href=\"";
+        char *mid = "\">";
+        char *end = "</a>";
+        htcharnode *curNode = indexNode;
+        curNode = mark_add_str(list, pre, curNode, removeCount);
+        // add link
+        htAddSimpleListCharAfterRef(list, mil->linkStart, mil->linkEnd, curNode);
+        curNode = mil->linkEnd->nextNode;
+        curNode = mark_add_str(list, mid, curNode, 0);
+        // add text
+        htAddSimpleListCharAfterRef(list, mil->textStart, mil->textEnd, curNode);
+        curNode = mil->textEnd->nextNode;
+        curNode = mark_add_str(list, end, curNode, 0);
+        return curNode;
     }
     if (is_img(indexNode)) {
         // 图片链接

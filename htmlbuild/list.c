@@ -255,3 +255,25 @@ void htCharExtra(htcharlist *baseList, htcharnode *startNode, htcharnode *endNod
     baseList->len = baseList->len - htSimpleNodeLen(startNode, endNode);
 }
 
+void htAddSimpleListCharAfterRef(htcharlist *baseList, htcharnode *addstart, htcharnode *addend, htcharnode *ref) {
+    htcharnode *refNext;
+    if (ref != NULL) {
+        refNext = ref->nextNode;
+        ref->nextNode = addstart;
+        addstart->preNode = ref;
+    } else {
+        refNext = baseList->head;
+        baseList->head = addstart;
+        addstart->preNode = NULL;
+    }
+    addend->nextNode = refNext;
+    if (refNext != NULL) {
+       refNext->preNode = addend;
+    } else {
+       baseList->end = addend;
+       addend->nextNode = NULL;
+    }
+
+    int len = htSimpleNodeLen(addstart, addend);
+    baseList->len = baseList->len + len;
+}

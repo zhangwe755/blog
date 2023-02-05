@@ -20,14 +20,33 @@ int main(int argc, char **argv) {
     }
     if (strcmp(function_name, "test_hello") == 0) {
         test_hello();
+        return 0;
     }
     if (strcmp(function_name, "test_ht_read_file") == 0) {
         test_ht_read_file();
+        return 0;
     }
-    if (strcmp(function_name, "test_build_mark_str") == 0) {
-        test_build_mark_str();
+    if (strcmp(function_name, "test_mark_str") == 0) {
+        test_mark_str();
+        return 0;
     }
-
+    if (strcmp(function_name, "test_mark_title") == 0) {
+        test_mark_title();
+        return 0;
+    }
+    if (strcmp(function_name, "test_mark_ref") == 0) {
+        test_mark_ref();
+        return 0;
+    }
+    if (strcmp(function_name, "test_mark_code") == 0) {
+        test_mark_code();
+        return 0;
+    }
+    if (strcmp(function_name, "test_mark_link") == 0) {
+        test_mark_link();
+        return 0;
+    }
+    log_info("function name:%s, not find test", function_name);
     return 0;
 }
 

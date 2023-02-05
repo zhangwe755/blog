@@ -41,6 +41,7 @@ htcharlist * htCreateCharList();
 void htAddCharNode(htcharlist *baseList, htcharnode *node);
 void htAddCharNodeUseData(htcharlist *baseList, char data);
 void htAddCharAfterRef(htcharlist *baseList, htcharnode *add, htcharnode *ref);
+void htAddSimpleListCharAfterRef(htcharlist *baseList, htcharnode *addstart, htcharnode *addend, htcharnode *ref);
 void htAddCharAfterRefUseData(htcharlist *baseList, char addData, htcharnode *ref);
 void htRemoveCharNode(htcharlist *baseList, htcharnode *node);
 void htCleanCharList(htcharlist *baseList);
