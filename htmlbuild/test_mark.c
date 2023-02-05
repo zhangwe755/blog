@@ -188,7 +188,6 @@ void test_mark_link() {
 }
 
 void test_mark_img() {
-    /*
     {
         char *starSrc = "![测试文本](http://baidu.com)";
         log_info("star src:%s", starSrc);
@@ -201,9 +200,8 @@ void test_mark_img() {
         char *starDest = build_mark_str(starSrc);
         log_debug("star dest:%s", starDest);
     }
-    */
     {
-        char *starSrc = "![测试文本](http://baidu.com)(width=20px)";
+        char *starSrc = "![测试文本](http://baidu.com)(width:20px)";
         log_info("star src:%s", starSrc);
         char *starDest = build_mark_str(starSrc);
         log_debug("star dest:%s", starDest);

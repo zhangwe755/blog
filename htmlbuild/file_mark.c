@@ -97,7 +97,8 @@ void reset_img_mil(markimgmil *mil, htcharnode *indexNode) {
             mil->linkEnd = curNode->preNode;
             if (curNode->nextNode != NULL
                     && curNode->nextNode->data == '(') {
-                mil->styleStart = mil->linkEnd->nextNode->nextNode;
+                mil->styleStart = curNode->nextNode->nextNode;
+                curNode=curNode->nextNode;
             } else {
                 break;
             }
@@ -110,7 +111,6 @@ void reset_img_mil(markimgmil *mil, htcharnode *indexNode) {
         }
         curNode=curNode->nextNode;
     }
-    log_debug("start node!, text start node next:%s", mil->textStart);
 }
 
 
@@ -379,8 +379,8 @@ htcharnode* try_build_mark(htcharlist *list, htcharnode *indexNode) {
         }
         char *pre = "<img src=\"";
         char *mid = "\" alt=\"";
-        char *mid2 = "\" style=\" ";
-        char *end = "\" />";
+        char *mid2 = "\" style=\"";
+        char *end = "\"/>";
         htcharnode *curNode = indexNode;
         curNode = mark_add_str(list, pre, curNode, removeCount);
         // add link
