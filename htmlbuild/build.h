@@ -1,3 +1,72 @@
+#include "list.h"
+
+#ifndef HT_BUILD
+#define HT_BUILD
+
+typedef struct file_reg_item {
+    char *root_file;
+    /**
+     * 单引用文件列表
+     * [sinc_file, sinc_file]
+     */
+    htlist *sinc_file_list;
+    /**
+     * 多文件引用列表
+     */
+    htlist *minc_file_list;
+} fileregitem;
+
+typedef struct file_reg {
+    /**
+     * item key is file_name, value is md5 str for file
+     */
+    htdict *md5_dict;
+    /**
+     * dict item value is a point for fileregitem
+     */
+    htdict *root_dict;
+    /**
+     * dict item value is a list for fileregitem
+     */
+    htdict *sfile_dict;
+    htdict *mfile_dict;
+} filereg;
+
+typedef struct char_node_frag {
+    htcharnode *start;
+    htcharnode *end;
+} charnodefrag;
+
+typedef struct root_context {
+    char *root_file;
+    char *tigger_file;
+
+    /**
+     * 字符串编译节点编译结果
+     */
+    htcharlist *result_char_list;
+    /**
+     * a charnodefrag for mic cmd
+     */
+    charnodefrag *minc_frag;
+    /**
+     * list item is a charnodefrag for sinc cmd
+     */
+    htlist *sinc_frag_list;
+    /**
+     * 变量字段 varName:varValue
+     */
+    htdict *var_dict;
+    /**
+     * 变量引用片段列表
+     * [charnodefrag, charnodefrag]
+     */
+    htlist *var_frag_list;
+}rootcontext;
+
+#endif
+
+
 /**
  * 根文件和子文件头部信息描述
  * 每个文件的第一行为头部信息
@@ -36,22 +105,30 @@
  * 
  * 编译过程:
  *     1.编译root文件,所有sinc命令
+ *         判断文件是否变更, 变更就编译, 未变更就加载缓存
  *         1.1 生成物: 
+ *             root文件变量字典,包含 type path 自定义
  *             生成物字符链表
  *             minc生成物字符链表节点开始结束指针
+ *             sinc生成物字符链表节点开始结束指针列表
  *             自定义变量引用列表指针
- *             root文件变量字典,包含 type path 自定义
  *         1.2 生成物缓存
  *             生成物字符链表缓存文件
- *             字典缓存文件
+ *             变量字典缓存文件
+ *         1.3 文件注册
+ *             注册主文件
+ *             注册单个子文件
  *     2.循环编译子文件
+ *         判断文件是否变更, 变更就编译, 未变更就加载缓存
  *         1.1 生成物: 
+ *             root文件变量字典,包含 type path 自定义
  *             生成物字符链表
  *             自定义变量引用列表指针
- *             root文件变量字典,包含 type path 自定义
  *         1.2 生成物缓存
  *             生成物字符链表缓存文件
- *             字典缓存文件
+ *             变量字典缓存文件
+ *         1.3 注册子文件
+ *             注册多子文件件
  *     3.自定义变量引用编译
  *     4.目标文件生成
  *
@@ -61,3 +138,6 @@
  * @tigger 触发文件地址,如果是子文件地址那么，在编译子文件阶段只编译该子文件
  */
 void ht_build(char *rootFile, char *tigger);
+
+
+

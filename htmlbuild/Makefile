@@ -4,8 +4,8 @@ AR_FLAGS += -r
 
 CC = $(MVTOOL_PREFIX)gcc $(INCLUDES) $(C_FLAGS) -c
 
-objects = dict.o list.o util.o parse.o htwatch.o config.o boot.o file_mark.o
-testsobjects = hello.o test_util.o test_mark.o
+objects = dict.o list.o util.o parse.o htwatch.o config.o boot.o file_mark.o md5.o
+testsobjects = hello.o test_util.o test_mark.o test_md5.o
 
 build-server:build-server.o $(objects)
 	gcc -o build-server build-server.o $(objects)

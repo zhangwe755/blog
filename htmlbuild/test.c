@@ -4,6 +4,7 @@
 #include "hello.h"
 #include "test_util.h"
 #include "test_mark.h"
+#include "test_md5.h"
 
 int main(int argc, char **argv) {
     log_info("argc:%d", argc);
@@ -48,6 +49,10 @@ int main(int argc, char **argv) {
     }
     if (strcmp(function_name, "test_mark_img") == 0) {
         test_mark_img();
+        return 0;
+    }
+    if (strcmp(function_name, "test_calc_md5") == 0) {
+        test_calc_md5();
         return 0;
     }
     log_info("function name:%s, not find test", function_name);
