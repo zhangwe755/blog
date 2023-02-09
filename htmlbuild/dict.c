@@ -85,7 +85,6 @@ void htDictRemove(htdict *dict, char *key, int freeOldValue) {
     htRemoveNode(list, node);
     htdictentry *entry = node->data;
     if (freeOldValue) {
-        free(entry->value);
         free(entry);
         free(node);
     }
@@ -93,4 +92,33 @@ void htDictRemove(htdict *dict, char *key, int freeOldValue) {
 
 void htDictRemoveNoFreeValue(htdict *dict, char *key) {
     htDictRemove(dict, key, 0);
+}
+
+hditerator* htDictStartIterator(htdict* dict) {
+    hditerator *it = malloc(sizeof(hditerator));
+    it->solt_id = -1;
+    it->curNode = NULL;
+    it->dict = dict;
+    return it;
+}
+
+htdictentry* htDictIteratorNext(hditerator *it) {
+    while(true) {
+        if (it->curNode == NULL || it->curNode->nextNode == NULL) {
+            it->solt_id++;
+            if (it->dict->len >= it->solt_id) {
+                break;
+            }
+            htlist *list = it->dict->solts[it->solt_id];
+            if (list->len > 0) {
+                it->curNode = list->head;
+                return it->curNode->data;
+            }
+            it->curNode = NULL;
+        } else {
+            it->curNode = it->curNode->nextNode;
+            return it->curNode->data;
+        }
+    }
+    return NULL;
 }

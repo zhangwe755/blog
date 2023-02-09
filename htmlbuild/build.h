@@ -37,14 +37,32 @@ typedef struct char_node_frag {
     htcharnode *end;
 } charnodefrag;
 
-typedef struct root_context {
-    char *root_file;
-    char *tigger_file;
-
+typedef struct file_result {
     /**
      * 字符串编译节点编译结果
      */
-    htcharlist *result_char_list;
+    htcharlist *result;
+    char* file_path;
+    char* md5;
+    /**
+     * 变量字段 varName:varValue
+     */
+    htdict *var_dict;
+}fresult;
+
+typedef struct root_context {
+    char *tigger_file;
+
+    /**
+     * root文件编译结果
+     */
+    fresult *result;
+
+    /**
+     * 单文件编译结果字典
+     */
+    htdict *sinc_result_dict;
+
     /**
      * a charnodefrag for mic cmd
      */
@@ -62,7 +80,7 @@ typedef struct root_context {
      * [charnodefrag, charnodefrag]
      */
     htlist *var_frag_list;
-}rootcontext;
+}rcontext;
 
 #endif
 
