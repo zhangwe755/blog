@@ -1,4 +1,5 @@
 #include "list.h"
+#include "dict.h"
 
 #ifndef HT_BUILD
 #define HT_BUILD
@@ -35,9 +36,10 @@ typedef struct file_reg {
 typedef struct char_node_frag {
     htcharnode *start;
     htcharnode *end;
-} charnodefrag;
+} cfrag;
 
 typedef struct file_result {
+    char* error;
     /**
      * 字符串编译节点编译结果
      */
@@ -66,7 +68,7 @@ typedef struct root_context {
     /**
      * a charnodefrag for mic cmd
      */
-    charnodefrag *minc_frag;
+    cfrag *minc_frag;
     /**
      * list item is a charnodefrag for sinc cmd
      */
