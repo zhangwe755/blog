@@ -218,7 +218,7 @@ int calc_md5(char *filename,char *dest)
   sprintf(temp,"%02x",decrypt[i]);
   strcat((char *)decrypt32,temp);
  }
- strcpy(dest, decrypt32);
+ memcpy(dest, decrypt32, 64);
 
  close(fdf);
 

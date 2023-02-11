@@ -103,7 +103,7 @@ hditerator* htDictStartIterator(htdict* dict) {
 }
 
 htdictentry* htDictIteratorNext(hditerator *it) {
-    while(true) {
+    while(1) {
         if (it->curNode == NULL || it->curNode->nextNode == NULL) {
             it->solt_id++;
             if (it->dict->len >= it->solt_id) {
