@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include "dict.h"
+#include "util.h"
 
 long _hashCode(char *hashStr) {
     long code = 0;
@@ -106,7 +107,7 @@ htdictentry* htDictIteratorNext(hditerator *it) {
     while(1) {
         if (it->curNode == NULL || it->curNode->nextNode == NULL) {
             it->solt_id++;
-            if (it->dict->len >= it->solt_id) {
+            if (it->dict->soltCount <= it->solt_id) {
                 break;
             }
             htlist *list = it->dict->solts[it->solt_id];

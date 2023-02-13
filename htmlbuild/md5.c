@@ -171,7 +171,7 @@ void MD5Transform(unsigned int state[4],unsigned char block[64])
 
 /**
  * @param filename 文件名称
- * @param dest 64位数组
+ * @param dest 32位数组或者内存指针
  */
 int calc_md5(char *filename,char *dest)
 {
@@ -218,7 +218,7 @@ int calc_md5(char *filename,char *dest)
   sprintf(temp,"%02x",decrypt[i]);
   strcat((char *)decrypt32,temp);
  }
- memcpy(dest, decrypt32, 64);
+ memcpy(dest, decrypt32, 32);
 
  close(fdf);
 
